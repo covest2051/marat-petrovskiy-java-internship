@@ -32,7 +32,7 @@ public class CustomLinkedList<E> {
 
     public void addLast(E element) {
         final CustomLinkedList.Node<E> currentLastNode = last;
-        final CustomLinkedList.Node<E> newLastNode = new CustomLinkedList.Node<>(null, element, currentLastNode);
+        final CustomLinkedList.Node<E> newLastNode = new CustomLinkedList.Node<>(currentLastNode, element, null);
 
         last = newLastNode;
 
@@ -44,8 +44,30 @@ public class CustomLinkedList<E> {
         size++;
     }
 
-    public void add(E element) {
-        addLast(element);
+    public void add(int index, E element) {
+        if (isAcceptableIndex(index) || index == size) {
+            if (index == 0) {
+                addFirst(element);
+                return;
+            }
+
+            if (index == size) {
+                addLast(element);
+                return;
+            }
+
+            final Node<E> node = findNodeByIndex(index);
+            final CustomLinkedList.Node<E> prevNode = node.prev;
+
+            final CustomLinkedList.Node<E> newNode = new Node<>(prevNode, element, node);
+
+            prevNode.next = newNode;
+            node.prev = newNode;
+
+            size++;
+        } else {
+            throw new IndexOutOfBoundsException("Index: [" + index + "] out of list bounds");
+        }
     }
 
     public E getFirst() {
@@ -64,19 +86,7 @@ public class CustomLinkedList<E> {
 
     public E get(int index) {
         if (isAcceptableIndex(index)) {
-            Node<E> node;
-            if (index < (size / 2)) {
-                node = first;
-                for (int i = 0; i < index; i++) {
-                    node = node.next;
-                }
-            } else {
-                node = last;
-                for (int i = size - 1; i > index; i--) {
-                    node = node.prev;
-                }
-            }
-            return node.item;
+            return findNodeByIndex(index).item;
         } else {
             throw new IndexOutOfBoundsException("Index: [" + index + "] out of list bounds");
         }
@@ -128,18 +138,7 @@ public class CustomLinkedList<E> {
 
     public void remove(int index) {
         if (isAcceptableIndex(index)) {
-            Node<E> node;
-            if (index < (size / 2)) {
-                node = first;
-                for (int i = 0; i < index; i++) {
-                    node = node.next;
-                }
-            } else {
-                node = last;
-                for (int i = size - 1; i > index; i--) {
-                    node = node.prev;
-                }
-            }
+            final Node<E> node = findNodeByIndex(index);
 
             final CustomLinkedList.Node<E> prevNode = node.prev;
             final CustomLinkedList.Node<E> nextNode = node.next;
@@ -148,17 +147,17 @@ public class CustomLinkedList<E> {
                 first = nextNode;
             } else {
                 prevNode.next = nextNode;
+                node.prev = null;
             }
 
             if (nextNode == null) {
                 last = prevNode;
             } else {
                 nextNode.prev = prevNode;
+                node.next = null;
             }
 
             node.item = null;
-            node.next = null;
-            node.prev = null;
 
             size--;
         } else {
@@ -180,5 +179,21 @@ public class CustomLinkedList<E> {
 
     private boolean isAcceptableIndex(int index) {
         return index >= 0 && index < size;
+    }
+
+    private Node<E> findNodeByIndex(int index) {
+        Node<E> node;
+        if (index < (size / 2)) {
+            node = first;
+            for (int i = 0; i < index; i++) {
+                node = node.next;
+            }
+        } else {
+            node = last;
+            for (int i = size - 1; i > index; i--) {
+                node = node.prev;
+            }
+        }
+        return node;
     }
 }
