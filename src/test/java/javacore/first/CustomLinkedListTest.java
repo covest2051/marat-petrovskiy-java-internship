@@ -1,4 +1,6 @@
-import javacore.CustomLinkedList;
+package javacore.first;
+
+import javacore.first.CustomLinkedList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,6 +24,7 @@ class CustomLinkedListTest {
     @Test
     void testAddFirst() {
         customLinkedList.addFirst("0");
+
         assertEquals("0", customLinkedList.get(0));
         assertEquals(4, customLinkedList.size());
     }
@@ -29,6 +32,7 @@ class CustomLinkedListTest {
     @Test
     void testAddLast() {
         customLinkedList.addLast("4");
+
         assertEquals("4", customLinkedList.get(customLinkedList.size() - 1));
         assertEquals(4, customLinkedList.size());
     }
@@ -36,6 +40,7 @@ class CustomLinkedListTest {
     @Test
     void testAddByIndex() {
         customLinkedList.add(1, "1.5");
+
         assertEquals("1.5", customLinkedList.get(1));
         assertEquals("2", customLinkedList.get(2));
         assertEquals(4, customLinkedList.size());
@@ -44,6 +49,7 @@ class CustomLinkedListTest {
     @Test
     void testAddByIndexEqualsZero() {
         customLinkedList.add(0, "0.5");
+
         assertEquals("0.5", customLinkedList.getFirst());
         assertEquals("1", customLinkedList.get(1));
         assertEquals(4, customLinkedList.size());
@@ -52,6 +58,7 @@ class CustomLinkedListTest {
     @Test
     void testAddAtEndByIndex() {
         customLinkedList.add(3, "4");
+
         assertEquals("4", customLinkedList.getLast());
         assertEquals(4, customLinkedList.size());
     }
@@ -85,6 +92,7 @@ class CustomLinkedListTest {
     @Test
     void testRemoveFirst() {
         customLinkedList.removeFirst();
+
         assertEquals("2", customLinkedList.getFirst());
         assertEquals(2, customLinkedList.size());
     }
@@ -92,6 +100,7 @@ class CustomLinkedListTest {
     @Test
     void testRemoveLast() {
         customLinkedList.removeLast();
+
         assertEquals("2", customLinkedList.getLast());
         assertEquals(2, customLinkedList.size());
     }
@@ -99,6 +108,7 @@ class CustomLinkedListTest {
     @Test
     void testRemoveByIndex() {
         customLinkedList.remove(1);
+
         assertEquals("3", customLinkedList.get(1));
         assertEquals(2, customLinkedList.size());
     }

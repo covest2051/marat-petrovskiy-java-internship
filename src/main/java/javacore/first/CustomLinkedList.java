@@ -1,4 +1,4 @@
-package javacore;
+package javacore.first;
 
 import java.util.NoSuchElementException;
 
