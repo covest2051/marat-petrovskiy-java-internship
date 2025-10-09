@@ -1,10 +1,12 @@
 package javacore.fourth.minispring.testEntity;
 
 import javacore.fourth.minispring.beans.factory.annotation.Autowired;
+import javacore.fourth.minispring.beans.factory.annotation.Scope;
 import javacore.fourth.minispring.beans.factory.stereotype.Component;
 
 @Component
-public class SomeComponent {
+@Scope("prototype")
+public class SomePrototypeComponent {
     @Autowired
     private BeanToInjectInComponent beanToInjectInComponent;
 
