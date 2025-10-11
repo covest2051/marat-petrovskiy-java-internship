@@ -5,9 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import userservice.dto.UserRequest;
@@ -17,7 +15,6 @@ import userservice.entity.User;
 import userservice.exception.EmailAlreadyExistsException;
 import userservice.exception.UserNotFoundException;
 import userservice.repository.UserRepository;
-import userservice.service.UserService;
 import userservice.service.impl.UserServiceImpl;
 
 import java.time.LocalDate;

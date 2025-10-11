@@ -13,7 +13,6 @@ import userservice.dto.mapper.CardMapper;
 import userservice.entity.Card;
 import userservice.entity.User;
 import userservice.exception.CardNotFoundException;
-import userservice.exception.CardNumberAlreadyExistsException;
 import userservice.repository.CardRepository;
 import userservice.repository.UserRepository;
 import userservice.service.impl.CardServiceImpl;
