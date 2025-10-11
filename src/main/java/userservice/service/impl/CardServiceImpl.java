@@ -1,6 +1,9 @@
 package userservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,6 +29,7 @@ public class CardServiceImpl implements CardService {
     private final CardMapper cardMapper;
 
     @Override
+    @Cacheable(value = "cards", key = "#id")
     public CardResponse createCard(CardRequest cardResponse) {
         User user = userRepository.findById(cardResponse.userId())
                 .orElseThrow(() -> new UserNotFoundException("User with id " + cardResponse.userId() + "not found"));
@@ -59,6 +63,7 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
+    @CachePut(value = "cards", key = "#id")
     public CardResponse updateCard(Long id, CardRequest updatedCard) {
         Card cardToUpdate = cardRepository.findById(id)
                 .orElseThrow(() -> new CardNotFoundException("Card with id " + id + " not found"));
@@ -80,6 +85,7 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
+    @CacheEvict(value = "users", key = "#id")
     public void deleteCard(Long id) {
         Card cardToDelete = cardRepository.findById(id)
                 .orElseThrow(() -> new CardNotFoundException("Card with id " + id + " not found"));
