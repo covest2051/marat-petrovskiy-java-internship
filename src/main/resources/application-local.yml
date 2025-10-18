@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/innowisedb
+    username: postgres
+    password: postgres
+  cache:
+    type: simple
+  data:
+    redis:
+      host: localhost
+      port: 6379
