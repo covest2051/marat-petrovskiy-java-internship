@@ -7,7 +7,7 @@ import userservice.entity.Card;
 
 import java.util.List;
 
-@Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
+@Mapper(componentModel = "spring")
 public interface CardMapper {
     CardResponse toCardResponse(Card card);
 
