@@ -28,7 +28,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Builder
-public class Role implements GrantedAuthority {
+public class RoleImpl implements GrantedAuthority {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
@@ -42,7 +42,7 @@ public class Role implements GrantedAuthority {
     @ManyToMany(mappedBy = "roles")
     private Set<User> users;
 
-    public Role(Long id, RoleEnum name) {
+    public RoleImpl(Long id, RoleEnum name) {
         this.name = name;
     }
 

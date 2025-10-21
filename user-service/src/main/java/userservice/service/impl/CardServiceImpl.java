@@ -96,4 +96,10 @@ public class CardServiceImpl implements CardService {
 
         cardRepository.delete(cardToDelete);
     }
+
+    public Long getOwnerId(Long cardId) {
+        return cardRepository.findById(cardId)
+                .map(card -> card.getUser().getId())
+                .orElse(null);
+    }
 }
