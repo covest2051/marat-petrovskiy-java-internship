@@ -52,7 +52,7 @@
                 <artifactId>liquibase-maven-plugin</artifactId>
                 <version>4.22.0</version>
                 <configuration>
-                    <changeLogFile>src/main/java/userservice/db/changelog.xml</changeLogFile>
+                    <changeLogFile>classpath:db/changelog/db.changelog-master.xml</changeLogFile>
                     <url>jdbc:postgresql://localhost:5432/innowisedb</url>
                     <username>postgres</username>
                     <password>postgres</password>
@@ -78,7 +78,7 @@
 
     <dependencies>
 
-        <!-- SPRING BOOT CORE -->
+        <!-- SPRING -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -94,6 +94,14 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
 
         <!-- DATABASE / MIGRATIONS -->
@@ -189,6 +197,25 @@
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
             <version>0.8.12</version>
+        </dependency>
+
+        <!-- JWT -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.11.5</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.11.5</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.11.5</version>
+            <scope>runtime</scope>
         </dependency>
     </dependencies>
 </project>

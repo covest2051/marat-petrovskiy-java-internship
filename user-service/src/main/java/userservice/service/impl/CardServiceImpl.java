@@ -6,6 +6,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import userservice.dto.CardRequest;
@@ -49,6 +50,7 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN') or @userSecurity.isCardOwner(#id)")
     public CardResponse getCardById(Long id) {
         Card card = cardRepository.findById(id)
                 .orElseThrow(() -> new CardNotFoundException("Card with id " + id + "not found"));
@@ -57,6 +59,7 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public List<CardResponse> getAllCards(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         List<Card> cards = cardRepository.findAll(pageable).getContent();
@@ -67,6 +70,7 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     @CachePut(value = "cards", key = "#id")
+    @PreAuthorize("hasRole('ADMIN') or @userSecurity.isCardOwner(#id)")
     public CardResponse updateCard(Long id, CardRequest updatedCard) {
         Card cardToUpdate = cardRepository.findById(id)
                 .orElseThrow(() -> new CardNotFoundException("Card with id " + id + " not found"));
@@ -90,6 +94,7 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     @CacheEvict(value = "users", key = "#id")
+    @PreAuthorize("hasRole('ADMIN') or @userSecurity.isCardOwner(#id)")
     public void deleteCard(Long id) {
         Card cardToDelete = cardRepository.findById(id)
                 .orElseThrow(() -> new CardNotFoundException("Card with id " + id + " not found"));

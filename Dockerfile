@@ -1,6 +1,13 @@
-FROM eclipse-temurin:22-jdk-alpine
+FROM eclipse-temurin:22-jdk-alpine AS builder
 WORKDIR /app
-COPY target/java-internship-1.0-SNAPSHOT.jar app.jar
-EXPOSE 8080
+COPY pom.xml .
+COPY src ./src
 
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+RUN ./mvnw -q clean package -DskipTests || mvn -q clean package -DskipTests
+
+FROM eclipse-temurin:17-jdk-alpine
+WORKDIR /app
+COPY --from=builder /app/target/authentication-service-*.jar app.jar
+EXPOSE 8081
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

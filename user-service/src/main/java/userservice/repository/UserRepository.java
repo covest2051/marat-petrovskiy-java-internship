@@ -15,7 +15,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     @Query("SELECT u FROM User u WHERE u.name LIKE %:name%")
-    Page<List<User>> findByNameContaining(String name, Pageable pageable);
+    Page<User> findByNameContaining(String name, Pageable pageable);
 
     @Query(value = "SELECT * FROM users WHERE email = :email", nativeQuery = true)
     Optional<User> findByEmailNative(String email);

@@ -16,7 +16,7 @@ public interface CardRepository extends JpaRepository<Card, Long> {
     List<Card> findByUser(User user);
 
     @Query("SELECT c FROM Card c WHERE c.number LIKE %:number%")
-    List<Page<Card>> findByNumberContaining(String number, Pageable pageable);
+    Page<Card> findByNumberContaining(String number, Pageable pageable);
 
     @Query(value = "SELECT * FROM cards WHERE number = :number", nativeQuery = true)
     Optional<Card> findByNumberNative(String number);

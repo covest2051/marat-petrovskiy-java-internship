@@ -1,22 +1,6 @@
 version: '3.9'
 
 services:
-  app:
-    build: .
-    container_name: java-internship-app
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/innowisedb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_REDIS_HOST=redis
-      - SPRING_REDIS_PORT=6379
-    depends_on:
-      - postgres
-      - redis
-
   postgres:
     image: postgres:15
     container_name: java-internship-postgres
@@ -28,12 +12,70 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7
     container_name: java-internship-redis
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  authentication-service:
+    build:
+      context: ./authentication-service
+      dockerfile: Dockerfile
+    container_name: authentication-service
+    restart: always
+    depends_on:
+      - postgres
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/innowisedb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SECURITY_JWT_SECRET: "619296d21b477d598dc0dc0ec8eec349"
+      SECURITY_JWT_ACCESS_EXPIRATION_MS: 900000
+      SECURITY_JWT_REFRESH_EXPIRATION_MS: 2592000000
+      SPRING_LIQUIBASE_ENABLED: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+      - authentication-service
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/innowisedb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      # Где auth-service ожидает секрет — убедитесь, что SECRET одинаков в обоих сервисах
+      SECURITY_JWT_SECRET: "619296d21b477d598dc0dc0ec8eec349"
+      AUTH_SERVICE_URL: http://authentication-service:8081
 
 volumes:
   pgdata:
