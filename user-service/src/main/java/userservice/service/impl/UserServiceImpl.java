@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
     @PreAuthorize("hasRole('ADMIN') or @userSecurity.isUserOwner(#id)")
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User with id " + id + "not found"));
+                .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
 
         return userMapper.toUserResponse(user);
     }
