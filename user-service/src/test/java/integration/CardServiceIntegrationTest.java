@@ -1,4 +1,4 @@
-package javacore.userservice.integration;
+package integration;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

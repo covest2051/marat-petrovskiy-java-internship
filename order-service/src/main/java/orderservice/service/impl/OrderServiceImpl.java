@@ -1,8 +1,10 @@
 package orderservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import orderservice.client.UserClient;
 import orderservice.dto.OrderRequest;
 import orderservice.dto.OrderResponse;
+import orderservice.dto.UserResponse;
 import orderservice.dto.mapper.OrderMapper;
 import orderservice.entity.Order;
 import orderservice.entity.OrderStatus;
@@ -23,6 +25,7 @@ import java.util.List;
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
+    private final UserClient userClient;
 
     @Override
     @Transactional
@@ -34,9 +37,11 @@ public class OrderServiceImpl implements OrderService {
                 .orderItems(orderRequest.orderItems())
                 .build();
 
+        UserResponse user = userClient.getUserById(order.getUserId());
+
         Order savedOrder = orderRepository.save(order);
 
-        return orderMapper.toOrderResponse(savedOrder);
+        return orderMapper.toOrderResponse(savedOrder, user);
     }
 
     @Override
@@ -45,7 +50,9 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order with id " + id + " not found"));
 
-        return orderMapper.toOrderResponse(order);
+        UserResponse user = userClient.getUserById(order.getUserId());
+
+        return orderMapper.toOrderResponse(order, user);
     }
 
     @Override
@@ -53,7 +60,11 @@ public class OrderServiceImpl implements OrderService {
         Pageable pageable = PageRequest.of(page, size);
         List<Order> orders = orderRepository.findAllByUserId(userId, pageable);
 
-        return orderMapper.toOrderResponseList(orders);
+        UserResponse user = userClient.getUserById(userId);
+
+        return orders.stream()
+                .map(order -> orderMapper.toOrderResponse(order, user))
+                .toList();
     }
 
     @Override
@@ -65,6 +76,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public OrderResponse updateOrder(Long id, OrderRequest orderRequest) {
         Order orderToUpdate = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order with id " + id + " not found"));
@@ -82,10 +94,13 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(orderToUpdate);
 
-        return orderMapper.toOrderResponse(savedOrder);
+        UserResponse user = userClient.getUserById(orderRequest.userId());
+
+        return orderMapper.toOrderResponse(savedOrder, user);
     }
 
     @Override
+    @Transactional
     public void deleteOrder(Long id) {
         Order orderToDelete = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order with id " + id + " not found"));
