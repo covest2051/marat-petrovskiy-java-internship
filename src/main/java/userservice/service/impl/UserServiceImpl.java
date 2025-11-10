@@ -7,6 +7,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import userservice.dto.UserRequest;
 import userservice.dto.UserResponse;
 import userservice.dto.mapper.UserMapper;
@@ -25,6 +26,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
 
     @Override
+    @Transactional
     public UserResponse createUser(UserRequest userToCreate) {
         if (userRepository.existsByEmail(userToCreate.email())) {
             throw new EmailAlreadyExistsException("User with email " + userToCreate.email() + " already exists");
@@ -68,6 +70,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     @CachePut(value = "users", key = "#id")
     public UserResponse updateUser(Long id, UserRequest updatedUser) {
         User userToUpdate = userRepository.findById(id)
@@ -91,6 +94,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     @CacheEvict(value = "users", key = "#id")
     public void deleteUser(Long id) {
         User userToDelete = userRepository.findById(id)
