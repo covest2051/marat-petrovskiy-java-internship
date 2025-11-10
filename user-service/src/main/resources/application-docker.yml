@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/innowisedb}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: update
+  liquibase:
+    change-log: ${SPRING_LIQUIBASE_CHANGELOG:classpath:db/changelog/db.changelog-master.xml}
+  cache:
+    type: redis
+  data:
+    redis:
+      host: redis
+      port: 6379
+
+server:
+  port: 8080
+
+security:
+  jwt:
+    secret: ${SECURITY_JWT_SECRET:619296d21b477d598dc0dc0ec8eec349}
