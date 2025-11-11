@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
     @PreAuthorize("hasRole('ADMIN') or @userSecurity.isUserOwner(#id)")
     public UserResponse getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User with id " + id + "not found"));
+                .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
 
         return userMapper.toUserResponse(user);
     }
@@ -107,5 +107,12 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
 
         userRepository.delete(userToDelete);
+    }
+
+    public UserResponse getByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("User with email " + email + " not found"));
+
+        return userMapper.toUserResponse(user);
     }
 }
