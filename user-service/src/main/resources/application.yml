@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: user-service
+  datasource:
+    url: jdbc:postgresql://java-internship-postgres:5432/innowisedb
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+server:
+  port: 8080
+
+security:
+  jwt:
+    secret: ${SECURITY_JWT_SECRET:619296d21b477d598dc0dc0ec8eec349}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

@@ -1,0 +1,61 @@
+stages:
+  - build
+  - test
+  - code_analysis
+  - docker_build
+
+variables:
+  MAVEN_CLI_OPTS: "-B -s .m2/settings.xml --batch-mode"
+  DOCKER_IMAGE: "registry.gitlab.com/<ваш-namespace>/<ваш-проект>:latest"
+
+#cache:
+#  paths:
+#    - .m2/repository
+
+build:
+  stage: build
+  image: maven:3.9.2-eclipse-temurin-22
+  script:
+    - mvn $MAVEN_CLI_OPTS clean compile
+  only:
+    - branches
+
+test:
+  stage: test
+  image: maven:3.9.2-eclipse-temurin-22
+  script:
+    - mvn $MAVEN_CLI_OPTS test
+  only:
+    - branches
+
+sonarqube:
+  stage: code_analysis
+  image:
+    name: maven:3.9.2-eclipse-temurin-22
+    entrypoint: [""]
+  script:
+    - mvn $MAVEN_CLI_OPTS sonar:sonar \
+      -Dsonar.projectKey=<ключ-проекта> \
+      -Dsonar.host.url=<URL-SonarQube> \
+      -Dsonar.login=$SONAR_TOKEN
+  only:
+    - branches
+  dependencies:
+    - build
+
+docker_build:
+  stage: docker_build
+  image: docker:24.0.2
+  services:
+    - docker:dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  script:
+    - docker build -t $DOCKER_IMAGE .
+    - docker push $DOCKER_IMAGE
+  only:
+    - branches
+  dependencies:
+    - test
