@@ -8,7 +8,6 @@ import orderservice.entity.OrderStatus;
 import orderservice.service.OrderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,10 +16,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("/orders")
 @RequiredArgsConstructor
 public class OrderController {
@@ -28,9 +28,7 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody OrderRequest request) {
-        OrderResponse createdOrder = orderService.createOrder(request);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdOrder);
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(request));
     }
 
     @GetMapping("/{id}")
@@ -38,17 +36,17 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrderById(id));
     }
 
-    @GetMapping("/user/{id}")
+    @GetMapping("/user/{userId}")
     public ResponseEntity<List<OrderResponse>> getAllUserOrdersById(@RequestParam(defaultValue = "0") int page,
                                                                     @RequestParam(defaultValue = "10") int size,
-                                                                    @PathVariable Long id) {
-        return ResponseEntity.ok(orderService.getAllUserOrdersById(page, size, id));
+                                                                    @PathVariable Long userId) {
+        return ResponseEntity.ok(orderService.getAllUserOrdersById(page, size, userId));
     }
 
     @GetMapping
     public ResponseEntity<List<OrderResponse>> getAllOrdersByStatus(@RequestParam(defaultValue = "0") int page,
                                                                     @RequestParam(defaultValue = "10") int size,
-                                                                    @RequestParam("status") OrderStatus status) {
+                                                                    @RequestParam OrderStatus status) {
         return ResponseEntity.ok(orderService.getAllOrdersByStatus(page, size, status));
     }
 
