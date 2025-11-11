@@ -1,7 +1,8 @@
 package orderservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import orderservice.client.UserClient;
+import lombok.extern.slf4j.Slf4j;
+import orderservice.controller.UserDataController;
 import orderservice.dto.OrderRequest;
 import orderservice.dto.OrderResponse;
 import orderservice.dto.UserResponse;
@@ -20,12 +21,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j // Подумал чуть-чуть логов добавить для красоты :)
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
-    private final UserClient userClient;
+    private final UserDataController userDataController;
 
     @Override
     @Transactional
@@ -41,7 +43,9 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(order);
 
-        return orderMapper.toOrderResponse(savedOrder, user);
+        log.info("Created order {} for user {}", savedOrder.getId(), savedOrder.getUserId());
+
+        return orderMapper.toOrderResponse(savedOrder);
     }
 
     @Override
@@ -94,9 +98,9 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(orderToUpdate);
 
-        UserResponse user = userClient.getUserById(orderRequest.userId());
+        log.info("Updated order {} for user {}", savedOrder.getId(), savedOrder.getUserId());
 
-        return orderMapper.toOrderResponse(savedOrder, user);
+        return orderMapper.toOrderResponse(savedOrder);
     }
 
     @Override
@@ -106,5 +110,16 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new OrderNotFoundException("Order with id " + id + " not found"));
 
         orderRepository.delete(orderToDelete);
+
+        log.info("Deleted order {} for user {}", orderToDelete.getId(), orderToDelete.getUserId());
+    }
+
+    private UserResponse getUserByEmail(String email) {
+        try {
+            return userDataController.getUserByEmail(email);
+        } catch (Exception ex) {
+            log.warn("Error while getting user for email {}: {}", email, ex.toString());
+            return null;
+        }
     }
 }
