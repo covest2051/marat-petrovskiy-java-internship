@@ -10,7 +10,7 @@ import java.util.List;
 public record OrderResponse(
         Long id,
 
-        Long userId,
+        UserResponse userResponse,
 
         @Size(max = 20)
         OrderStatus status,
