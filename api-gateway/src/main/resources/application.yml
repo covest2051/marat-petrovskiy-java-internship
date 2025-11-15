@@ -1,0 +1,33 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: auth-service
+              uri: http://auth-service:8081
+              predicates:
+                - Path=/auth/**
+              filters:
+                - name: JwtAuth
+                - RewritePath=/auth/(?<remaining>.*), /$\{remaining}
+
+            - id: user-service
+              uri: http://user-service:8082
+              predicates:
+                - Path=/user/**
+              filters:
+                - name: JwtAuth
+                - RewritePath=/user/(?<remaining>.*), /$\{remaining}
+
+
+
+security:
+  jwt:
+    secret: ${SECURITY_JWT_SECRET:619296d21b477d598dc0dc0ec8eec349}
+    exclude-paths:
+      - /auth/login
+      - /auth/register
+      - /auth/health
