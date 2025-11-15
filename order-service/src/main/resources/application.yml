@@ -13,3 +13,9 @@ resilience4j:
     instances:
       userService:
         baseConfig: default
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus

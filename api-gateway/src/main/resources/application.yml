@@ -22,8 +22,6 @@ spring:
                 - name: JwtAuth
                 - RewritePath=/user/(?<remaining>.*), /$\{remaining}
 
-
-
 security:
   jwt:
     secret: ${SECURITY_JWT_SECRET:619296d21b477d598dc0dc0ec8eec349}
@@ -31,3 +29,12 @@ security:
       - /auth/login
       - /auth/register
       - /auth/health
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    prometheus:
+      enabled: true
