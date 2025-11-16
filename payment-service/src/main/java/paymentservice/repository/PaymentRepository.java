@@ -24,7 +24,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
            FROM Payment p
            WHERE p.timestamp BETWEEN :from AND :to
            """)
-    BigDecimal getTotalSumForPeriod(Instant from, Instant to, Pageable pageable);
+    BigDecimal getTotalSumForPeriod(Instant from, Instant to);
 
     @Query("""
            SELECT COALESCE(SUM(p.paymentAmount), 0)
@@ -32,5 +32,5 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
            WHERE p.userId = :userId
              AND p.timestamp BETWEEN :from AND :to
            """)
-    BigDecimal getTotalSumForPeriodByUser(Long userId, Instant from, Instant to, Pageable pageable);
+    BigDecimal getTotalSumForPeriodByUser(Long userId, Instant from, Instant to);
 }
