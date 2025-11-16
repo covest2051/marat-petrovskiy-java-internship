@@ -5,6 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import paymentservice.client.RandomNumberClient;
 import paymentservice.dto.PaymentRequest;
 import paymentservice.dto.PaymentResponse;
 import paymentservice.dto.mapper.PaymentMapper;
@@ -23,14 +24,21 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentMapper paymentMapper;
     private final PaymentRepository paymentRepository;
+    private final RandomNumberClient randomNumberClient;
 
     @Override
     @Transactional
     public PaymentResponse createPayment(PaymentRequest paymentRequest) {
+        int randomNumber = randomNumberClient.getRandomNumber();
+
+        PaymentStatus status = (randomNumber % 2 == 0)
+                ? PaymentStatus.CREATED
+                : PaymentStatus.ERROR;
+
         Payment payment = Payment.builder()
                 .orderId(paymentRequest.orderId())
                 .userId(paymentRequest.userId())
-                .status(PaymentStatus.valueOf(paymentRequest.status()))
+                .status(status)
                 .timestamp(Instant.now())
                 .paymentAmount(paymentRequest.paymentAmount())
                 .build();
