@@ -16,6 +16,7 @@
         <module>authentication-service</module>
         <module>order-service</module>
         <module>api-gateway</module>
+        <module>payment-service</module>
     </modules>
 
     <groupId>com.java.internship</groupId>
