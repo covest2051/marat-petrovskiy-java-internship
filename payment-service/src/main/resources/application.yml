@@ -1,25 +1,3 @@
-resilience4j:
-  circuitbreaker:
-    configs:
-      default:
-        slidingWindowSize: 100
-        permittedNumberOfCallsInHalfOpenState: 10
-        slowCallDurationThreshold: 4s
-        slowCallRateThreshold: 90
-        failureRateThreshold: 50
-        waitDurationInOpenState: 10s
-        minimumNumberOfCalls: 10
-
-    instances:
-      userService:
-        baseConfig: default
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health, info, prometheus
-
 spring:
   kafka:
     bootstrap-servers: localhost:9092
@@ -33,4 +11,3 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
-
