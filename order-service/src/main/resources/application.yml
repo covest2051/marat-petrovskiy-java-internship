@@ -33,4 +33,8 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    template:
+      default-topic: ${topic.send-order}
 
+topic:
+  order-created: create-order-event
