@@ -1,17 +1,14 @@
 package paymentservice.entity;
 
-import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 
-@Entity
-@Table(name = "payments",
-        indexes = {
-                @Index(name = "idx_payment_order_id", columnList = "order_id"),
-                @Index(name = "idx_payment_user_id", columnList = "user_id"),
-                @Index(name = "idx_payment_status", columnList = "status")
-        })
+@Document(collection = "payments")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,23 +16,18 @@ import java.time.Instant;
 public class Payment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "order_id", nullable = false)
+    @Indexed
     private Long orderId;
 
-    @Column(name = "user_id", nullable = false)
+    @Indexed
     private Long userId;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Indexed
     private PaymentStatus status;
 
-    @Column(nullable = false, columnDefinition = "TIMESTAMP")
     private Instant timestamp;
 
-    @Column(name = "payment_amount", nullable = false)
     private BigDecimal paymentAmount;
 }
-
