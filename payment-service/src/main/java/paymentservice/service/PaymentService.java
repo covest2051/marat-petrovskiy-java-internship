@@ -21,8 +21,6 @@ public interface PaymentService {
      * Задача была описана как: Get total sum of payments for date period
      * Не уточняется, сумма заказов всех пользователей или одного конкретного
      * Поэтому реализовал два варианта
-     * Но лично на мой взгляд, сумма заказов всех пользователей нужна больше для ведения статистики какой-нибудь
-     * Поэтому я бы реализовывал её за пределами CRUD сервиса.
      */
     BigDecimal getAllPaymentsByPeriod(int page, int size, Instant from, Instant to);
 
