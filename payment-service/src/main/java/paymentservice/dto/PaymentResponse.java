@@ -1,9 +1,8 @@
 package paymentservice.dto;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import paymentservice.entity.PaymentStatus;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 public record PaymentResponse(
@@ -17,5 +16,5 @@ public record PaymentResponse(
 
         Instant timestamp,
 
-        Long paymentAmount) {
+        BigDecimal paymentAmount) {
 }

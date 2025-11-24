@@ -9,8 +9,8 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface PaymentMapper {
-    @Mapping(target = "paymentResponse", source = "user")
     PaymentResponse toPaymentResponse(Payment payment);
 
-    List<PaymentResponse> toPaymentResponseList(List<Payment> orders);
+    List<PaymentResponse> toPaymentResponseList(List<Payment> payments);
 }
+

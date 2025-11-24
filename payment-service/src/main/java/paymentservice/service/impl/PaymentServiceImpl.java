@@ -3,6 +3,7 @@ package paymentservice.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import paymentservice.client.RandomNumberClient;
@@ -13,6 +14,7 @@ import paymentservice.entity.Payment;
 import paymentservice.entity.PaymentStatus;
 import paymentservice.kafka.PaymentEventProducer;
 import paymentservice.kafka.event.OrderCreatedEvent;
+import paymentservice.kafka.event.PaymentCreatedEvent;
 import paymentservice.repository.PaymentRepository;
 import paymentservice.service.PaymentService;
 
@@ -88,7 +90,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public List<PaymentResponse> getPaymentsByOrderId(int page, int size, Long orderId) {
         Pageable pageable = PageRequest.of(page, size);
-        List<Payment> payments = paymentRepository.findByOrderId(orderId, pageable);
+        List<Payment> payments = paymentRepository.findByOrderId(orderId, pageable).getContent();
 
         return paymentMapper.toPaymentResponseList(payments);
     }
@@ -96,7 +98,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public List<PaymentResponse> getPaymentsByUserId(int page, int size, Long userId) {
         Pageable pageable = PageRequest.of(page, size);
-        List<Payment> payments = paymentRepository.findAllByUserId(userId, pageable);
+        List<Payment> payments = paymentRepository.findAllByUserId(userId, pageable).getContent();
 
         return paymentMapper.toPaymentResponseList(payments);
     }
@@ -104,18 +106,24 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public List<PaymentResponse> getPaymentsByStatus(int page, int size, PaymentStatus status) {
         Pageable pageable = PageRequest.of(page, size);
-        List<Payment> payments = paymentRepository.findAllByStatus(status, pageable);
+        List<Payment> payments = paymentRepository.findAllByStatus(status, pageable).getContent();
 
         return paymentMapper.toPaymentResponseList(payments);
     }
 
     @Override
     public BigDecimal getAllPaymentsByPeriod(int page, int size, Instant from, Instant to) {
-        return paymentRepository.getTotalSumForPeriod(from, to);
+        List<Payment> payments = paymentRepository.findByTimestampBetween(from, to);
+        return payments.stream()
+                .map(Payment::getPaymentAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Override
     public BigDecimal getUserPaymentsByPeriod(int page, int size, Long userId, Instant from, Instant to) {
-        return paymentRepository.getTotalSumForPeriodByUser(userId, from, to);
+        List<Payment> payments = paymentRepository.findByUserIdAndTimestampBetween(userId, from, to);
+        return payments.stream()
+                .map(Payment::getPaymentAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
