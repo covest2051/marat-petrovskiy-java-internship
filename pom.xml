@@ -132,6 +132,7 @@
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-mongodb</artifactId>
         </dependency>
+<<<<<<< HEAD
 
         <!-- Kafka -->
         <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka-clients -->
@@ -146,6 +147,8 @@
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
         </dependency>
+=======
+>>>>>>> ea7924e (refactor(payment service): migrate from PostgreSQL to MongoDB)
 
         <!-- DATABASE / MIGRATIONS -->
         <dependency>
