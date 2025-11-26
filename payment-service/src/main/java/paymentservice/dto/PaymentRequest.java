@@ -1,5 +1,6 @@
 package paymentservice.dto;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -15,5 +16,6 @@ public record PaymentRequest(
         @Size(max = 20)
         String status,
 
+        @DecimalMin(value = "0.01", message = "Payment amount must be greater than 0")
         BigDecimal paymentAmount) {
 }

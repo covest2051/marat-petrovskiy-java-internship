@@ -10,13 +10,10 @@ import java.time.Instant;
 public record PaymentResponse(
         Long id,
 
-        @NotNull
         Long orderId,
 
-        @NotNull
         Long userId,
 
-        @Size(max = 20)
         PaymentStatus status,
 
         Instant timestamp,
