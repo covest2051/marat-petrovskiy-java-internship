@@ -177,6 +177,36 @@ services:
       timeout: 5s
       retries: 10
 
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    container_name: payment-service
+    restart: always
+    depends_on:
+      - postgres
+      - kafka
+      - redis
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/innowisedb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_LIQUIBASE_ENABLED: "false"
+
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      TOPIC_ORDER_CREATED: test-order-created-topic
+
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
 
 volumes:
   pgdata:
