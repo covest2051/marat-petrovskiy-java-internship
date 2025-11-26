@@ -1,8 +1,10 @@
 package paymentservice.service;
 
+import org.springframework.transaction.annotation.Transactional;
 import paymentservice.dto.PaymentRequest;
 import paymentservice.dto.PaymentResponse;
 import paymentservice.entity.PaymentStatus;
+import paymentservice.kafka.event.OrderCreatedEvent;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -10,6 +12,8 @@ import java.util.List;
 
 public interface PaymentService {
     PaymentResponse createPayment(PaymentRequest paymentRequest);
+
+    PaymentResponse createPaymentFromOrder(OrderCreatedEvent event);
 
     List<PaymentResponse> getPaymentsByOrderId(int page, int size, Long orderId);
 

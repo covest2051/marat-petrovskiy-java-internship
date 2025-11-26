@@ -11,6 +11,7 @@ import paymentservice.dto.PaymentResponse;
 import paymentservice.dto.mapper.PaymentMapper;
 import paymentservice.entity.Payment;
 import paymentservice.entity.PaymentStatus;
+import paymentservice.kafka.event.OrderCreatedEvent;
 import paymentservice.repository.PaymentRepository;
 import paymentservice.service.PaymentService;
 
@@ -47,6 +48,36 @@ public class PaymentServiceImpl implements PaymentService {
 
         return paymentMapper.toPaymentResponse(savedPayment);
     }
+
+    @Override
+    @Transactional
+    public PaymentResponse createPaymentFromOrder(OrderCreatedEvent event) {
+        PaymentRequest paymentRequest = new PaymentRequest(
+                event.orderId(),
+                event.userId(),
+                "PENDING",
+                event.paymentAmount()
+        );
+
+        int randomNumber = randomNumberClient.getRandomNumber();
+
+        PaymentStatus status = (randomNumber % 2 == 0)
+                ? PaymentStatus.CREATED
+                : PaymentStatus.ERROR;
+
+        Payment payment = Payment.builder()
+                .orderId(paymentRequest.orderId())
+                .userId(paymentRequest.userId())
+                .status(status)
+                .timestamp(Instant.now())
+                .paymentAmount(paymentRequest.paymentAmount())
+                .build();
+
+        Payment savedPayment = paymentRepository.save(payment);
+
+        return paymentMapper.toPaymentResponse(savedPayment);
+    }
+
 
     @Override
     public List<PaymentResponse> getPaymentsByOrderId(int page, int size, Long orderId) {
