@@ -13,4 +13,4 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 topic:
-  payment-created: create-payment-event
+  payment-created: create-payment-event-topic

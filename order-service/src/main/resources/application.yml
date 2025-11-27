@@ -37,4 +37,4 @@ spring:
       default-topic: ${topic.send-order}
 
 topic:
-  order-created: create-order-event
+  order-created: create-order-event-topic
