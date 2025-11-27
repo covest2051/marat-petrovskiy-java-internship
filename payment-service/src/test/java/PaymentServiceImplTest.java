@@ -3,6 +3,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import paymentservice.dto.PaymentRequest;
 import paymentservice.dto.PaymentResponse;
@@ -95,8 +97,12 @@ class PaymentServiceImplTest {
 
     @Test
     void getPaymentsByOrderId_shouldReturnPayments() {
+        Payment payment = new Payment();
+        Page<Payment> page = new PageImpl<>(List.of(payment));
+
         when(paymentRepository.findByOrderId(eq(1L), any(Pageable.class)))
-                .thenReturn(List.of(new Payment()));
+                .thenReturn(page);
+
         when(paymentMapper.toPaymentResponseList(any()))
                 .thenReturn(List.of());
 
@@ -109,8 +115,12 @@ class PaymentServiceImplTest {
 
     @Test
     void getPaymentsByUserId_shouldReturnPayments() {
+        Payment payment = new Payment();
+        Page<Payment> page = new PageImpl<>(List.of(payment));
+
         when(paymentRepository.findAllByUserId(eq(1L), any(Pageable.class)))
-                .thenReturn(List.of(new Payment()));
+                .thenReturn(page);
+
         when(paymentMapper.toPaymentResponseList(any()))
                 .thenReturn(List.of());
 
@@ -119,13 +129,16 @@ class PaymentServiceImplTest {
         assertNotNull(result);
         verify(paymentRepository).findAllByUserId(eq(1L), any(Pageable.class));
         verify(paymentMapper).toPaymentResponseList(any());
-
     }
 
     @Test
     void getPaymentsByStatus_shouldReturnPayments() {
+        Payment payment = new Payment();
+        Page<Payment> page = new PageImpl<>(List.of(payment));
+
         when(paymentRepository.findAllByStatus(eq(PaymentStatus.COMPLETE), any(Pageable.class)))
-                .thenReturn(List.of(new Payment()));
+                .thenReturn(page);
+
         when(paymentMapper.toPaymentResponseList(any()))
                 .thenReturn(List.of());
 
@@ -137,45 +150,22 @@ class PaymentServiceImplTest {
     }
 
     @Test
-    void getAllPaymentsByPeriod_callsRepositoryAndReturnsSum() {
-        Instant from = Instant.now().minus(1, ChronoUnit.DAYS);
-        Instant to = Instant.now();
-        BigDecimal totalSum = BigDecimal.valueOf(123.45);
-
-        when(paymentRepository.getTotalSumForPeriod(from, to)).thenReturn(totalSum);
-
-        BigDecimal result = paymentService.getAllPaymentsByPeriod(0, 10, from, to);
-
-        assertNotNull(result);
-        assertEquals(totalSum, result);
-        verify(paymentRepository).getTotalSumForPeriod(from, to);
-    }
-
-
-    @Test
     void getAllPaymentsByPeriod_calculatesCorrectSum() {
-        paymentRepository.deleteAll();
-
         Instant from = Instant.now().minus(7, ChronoUnit.DAYS);
         Instant to = Instant.now();
 
         List<Payment> payments = List.of(
-                new Payment(1L, 1L, 1L, PaymentStatus.COMPLETE, Instant.now().minus(1, ChronoUnit.DAYS),  BigDecimal.valueOf(50)),
-                new Payment(1L, 1L, 1L, PaymentStatus.COMPLETE, Instant.now().minus(2, ChronoUnit.DAYS),  BigDecimal.valueOf(70)),
-                new Payment(2L, 2L, 2L, PaymentStatus.COMPLETE, Instant.now().minus(3, ChronoUnit.DAYS),  BigDecimal.valueOf(30))
+                Payment.builder().paymentAmount(BigDecimal.valueOf(50)).build(),
+                Payment.builder().paymentAmount(BigDecimal.valueOf(70)).build(),
+                Payment.builder().paymentAmount(BigDecimal.valueOf(30)).build()
         );
 
-        BigDecimal totalSum = payments.stream()
-                .map(Payment::getPaymentAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        when(paymentRepository.getTotalSumForPeriod(from, to)).thenReturn(totalSum);
+        when(paymentRepository.findByTimestampBetween(from, to)).thenReturn(payments);
 
         BigDecimal result = paymentService.getAllPaymentsByPeriod(0, 10, from, to);
 
-        assertNotNull(result);
         assertEquals(BigDecimal.valueOf(150), result);
-        verify(paymentRepository).getTotalSumForPeriod(from, to);
+        verify(paymentRepository).findByTimestampBetween(from, to);
     }
 
     @Test
@@ -183,14 +173,18 @@ class PaymentServiceImplTest {
         Instant from = Instant.now().minus(1, ChronoUnit.DAYS);
         Instant to = Instant.now();
         Long userId = 1L;
-        BigDecimal totalSum = BigDecimal.valueOf(67.89);
 
-        when(paymentRepository.getTotalSumForPeriodByUser(userId, from, to)).thenReturn(totalSum);
+        List<Payment> payments = List.of(
+                Payment.builder().paymentAmount(BigDecimal.valueOf(40)).build(),
+                Payment.builder().paymentAmount(BigDecimal.valueOf(27.89)).build()
+        );
+
+        when(paymentRepository.findByUserIdAndTimestampBetween(userId, from, to))
+                .thenReturn(payments);
 
         BigDecimal result = paymentService.getUserPaymentsByPeriod(0, 10, userId, from, to);
 
-        assertNotNull(result);
-        assertEquals(totalSum, result);
-        verify(paymentRepository).getTotalSumForPeriodByUser(userId, from, to);
+        assertEquals(BigDecimal.valueOf(67.89), result);
+        verify(paymentRepository).findByUserIdAndTimestampBetween(userId, from, to);
     }
 }
