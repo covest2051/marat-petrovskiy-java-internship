@@ -11,6 +11,7 @@ import paymentservice.dto.PaymentResponse;
 import paymentservice.dto.mapper.PaymentMapper;
 import paymentservice.entity.Payment;
 import paymentservice.entity.PaymentStatus;
+import paymentservice.kafka.PaymentEventProducer;
 import paymentservice.kafka.event.OrderCreatedEvent;
 import paymentservice.repository.PaymentRepository;
 import paymentservice.service.PaymentService;
@@ -26,6 +27,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentMapper paymentMapper;
     private final PaymentRepository paymentRepository;
     private final RandomNumberClient randomNumberClient;
+    private final PaymentEventProducer paymentEventProducer;
 
     @Override
     @Transactional
@@ -45,6 +47,8 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
 
         Payment savedPayment = paymentRepository.save(payment);
+
+        paymentEventProducer.sendPaymentCreatedEvent(payment);
 
         return paymentMapper.toPaymentResponse(savedPayment);
     }
@@ -74,6 +78,8 @@ public class PaymentServiceImpl implements PaymentService {
                 .build();
 
         Payment savedPayment = paymentRepository.save(payment);
+
+        paymentEventProducer.sendPaymentCreatedEvent(payment);
 
         return paymentMapper.toPaymentResponse(savedPayment);
     }
