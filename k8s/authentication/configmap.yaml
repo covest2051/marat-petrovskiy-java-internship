@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-config
+  namespace: microservices
+data:
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/innowisedb"
+  SPRING_DATASOURCE_USERNAME: "postgres"
+  SPRING_LIQUIBASE_ENABLED: "false"
+  SPRING_CACHE_TYPE: "redis"
+  SPRING_DATA_REDIS_HOST: "redis"
+  SPRING_DATA_REDIS_PORT: "6379"

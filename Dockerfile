@@ -1,6 +1,8 @@
 FROM eclipse-temurin:22-jdk-alpine AS builder
 WORKDIR /app
 COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
 COPY src ./src
 
 RUN ./mvnw -q clean package -DskipTests || mvn -q clean package -DskipTests
