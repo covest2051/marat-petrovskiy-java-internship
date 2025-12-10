@@ -19,6 +19,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -63,5 +64,12 @@ public class Order {
     public void removeOrderItem(OrderItem item) {
         orderItems.remove(item);
         item.setOrder(null);
+    }
+
+    public BigDecimal getTotalPrice() { // В ТЗ про колонку с общей суммой заказа ничего не было сказано, поэтому пока что просто метод для подсчёта
+        return orderItems.stream()
+                .map(OrderItem::getItem)
+                .map(Item::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
