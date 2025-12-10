@@ -39,6 +39,8 @@ public class OrderServiceImpl implements OrderService {
                 .orderItems(orderRequest.orderItems())
                 .build();
 
+        UserResponse user = userClient.getUserById(order.getUserId());
+
         Order savedOrder = orderRepository.save(order);
 
         log.info("Created order {} for user {}", savedOrder.getId(), savedOrder.getUserId());
@@ -52,7 +54,9 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order with id " + id + " not found"));
 
-        return orderMapper.toOrderResponse(order);
+        UserResponse user = userClient.getUserById(order.getUserId());
+
+        return orderMapper.toOrderResponse(order, user);
     }
 
     @Override
@@ -60,7 +64,11 @@ public class OrderServiceImpl implements OrderService {
         Pageable pageable = PageRequest.of(page, size);
         List<Order> orders = orderRepository.findAllByUserId(userId, pageable);
 
-        return orderMapper.toOrderResponseList(orders);
+        UserResponse user = userClient.getUserById(userId);
+
+        return orders.stream()
+                .map(order -> orderMapper.toOrderResponse(order, user))
+                .toList();
     }
 
     @Override
