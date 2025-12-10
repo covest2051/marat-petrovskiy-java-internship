@@ -1,5 +1,6 @@
 package orderservice.service.impl;
 
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import orderservice.controller.UserDataController;
@@ -10,6 +11,7 @@ import orderservice.dto.mapper.OrderMapper;
 import orderservice.entity.Order;
 import orderservice.entity.OrderStatus;
 import orderservice.exception.OrderNotFoundException;
+import orderservice.metrics.OrderMetrics;
 import orderservice.repository.OrderRepository;
 import orderservice.service.OrderService;
 import org.springframework.cache.annotation.Cacheable;
@@ -27,10 +29,12 @@ import java.util.List;
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
-    private final UserDataController userDataController;
+    private final UserClient userClient;
+    private final OrderMetrics orderMetrics;
 
     @Override
     @Transactional
+    @Timed(value = "order.create.time", description = "Time spent creating orders")
     public OrderResponse createOrder(OrderRequest orderRequest) {
         Order order = Order.builder()
                 .userId(orderRequest.userId())
@@ -43,9 +47,9 @@ public class OrderServiceImpl implements OrderService {
 
         Order savedOrder = orderRepository.save(order);
 
-        log.info("Created order {} for user {}", savedOrder.getId(), savedOrder.getUserId());
+        orderMetrics.incrementCreated();
 
-        return orderMapper.toOrderResponse(savedOrder);
+        return orderMapper.toOrderResponse(savedOrder, user);
     }
 
     @Override

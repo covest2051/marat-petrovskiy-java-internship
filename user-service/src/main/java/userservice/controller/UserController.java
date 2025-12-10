@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import userservice.dto.UserRequest;
@@ -59,9 +60,8 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/email/{email}")
-    public ResponseEntity<UserResponse> getByEmail(@PathVariable String email) {
-        UserResponse user = userService.getUserByEmail(email);
-        return ResponseEntity.ok(user);
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser(@RequestHeader("X-User-Id") Long userId) {
+        return ResponseEntity.ok(userService.getUserById(userId));
     }
 }
