@@ -1,14 +1,21 @@
 package integration;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
@@ -19,45 +26,49 @@ import paymentservice.dto.PaymentRequest;
 import paymentservice.dto.PaymentResponse;
 import paymentservice.entity.Payment;
 import paymentservice.entity.PaymentStatus;
+import paymentservice.kafka.event.OrderCreatedEvent;
+import paymentservice.kafka.event.OrderItemEvent;
 import paymentservice.repository.PaymentRepository;
 import paymentservice.service.PaymentService;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 @Testcontainers
-@SpringBootTest(classes = PaymentServiceApplication.class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class PaymentServiceIntegrationTest {
+@SpringBootTest(classes = {PaymentServiceApplication.class})
+class PaymentServiceIntegrationTest {
+
+    @Value("${topic.order-created}")
+    private String orderCreatedTopic;
+
+    private KafkaTemplate<String, Object> kafkaTemplate;
 
     @Container
-    static final KafkaContainer kafka = new KafkaContainer(
-            DockerImageName.parse("apache/kafka-native:3.8.0")
+    static MongoDBContainer mongo = new MongoDBContainer("mongo:6.0.8")
+            .withReuse(false);
+
+    @Container
+    static KafkaContainer kafka = new KafkaContainer(
+            DockerImageName.parse("confluentinc/cp-kafka:7.5.0")
     );
 
-    @Container
-    static final MongoDBContainer mongoDBContainer = new MongoDBContainer(
-            DockerImageName.parse("mongo:4.0.10")
-    );
-
-    static WireMockServer wireMockServer = new WireMockServer(8089);
-
-
-    @Container
-    static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:15")
-            .withDatabaseName("innowisedb")
-            .withUsername("postgres")
-            .withPassword("postgres");
+    PaymentServiceIntegrationTest(KafkaTemplate<String, Object> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
 
     @DynamicPropertySource
-    static void setDatasourceProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgresContainer::getUsername);
-        registry.add("spring.datasource.password", postgresContainer::getPassword);
+    static void registerProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.data.mongodb.uri", mongo::getReplicaSetUrl);
+        registry.add("topic.order-created", () -> "order-created");
+        registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
     }
 
     @Autowired
@@ -66,46 +77,138 @@ public class PaymentServiceIntegrationTest {
     @Autowired
     private PaymentRepository paymentRepository;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @BeforeEach
     void setUp() {
+        Map<String, Object> producerProps = Map.of(
+                "bootstrap.servers", kafka.getBootstrapServers(),
+                "key.serializer", StringSerializer.class,
+                "value.serializer", JsonSerializer.class
+        );
+
+        DefaultKafkaProducerFactory<String, Object> pf =
+                new DefaultKafkaProducerFactory<>(producerProps, new StringSerializer(), new JsonSerializer<>(objectMapper));
+        kafkaTemplate = new KafkaTemplate<>(pf);
+
         paymentRepository.deleteAll();
+    }
 
-        paymentRepository.saveAll(List.of(
-                new Payment(1L, 1L, 1L, PaymentStatus.COMPLETE, Instant.now().minus(1, ChronoUnit.DAYS),  BigDecimal.valueOf(50)),
-                new Payment(1L, 1L, 1L, PaymentStatus.COMPLETE, Instant.now().minus(2, ChronoUnit.DAYS),  BigDecimal.valueOf(70)),
-                new Payment(2L, 2L, 2L, PaymentStatus.COMPLETE, Instant.now().minus(3, ChronoUnit.DAYS),  BigDecimal.valueOf(30))
-        ));
+    @AfterEach
+    void tearDown() {
+        paymentRepository.deleteAll();
+    }
+
+    private Payment payment(long orderId, long userId, PaymentStatus status, int secondsAgo, int amount) {
+        return Payment.builder()
+                .orderId(orderId)
+                .userId(userId)
+                .status(status)
+                .timestamp(Instant.now().minusSeconds(secondsAgo))
+                .paymentAmount(BigDecimal.valueOf(amount))
+                .build();
     }
 
     @Test
-    void getAllPaymentsByPeriod_shouldReturnCorrectSum() {
-        Instant from = Instant.now().minus(7, ChronoUnit.DAYS);
-        Instant to = Instant.now();
+    void shouldHandleCreateOrderEvent() {
+        List<OrderItemEvent> items = List.of(
+                new OrderItemEvent(100L, 2)
+        );
 
-        BigDecimal total = paymentService.getAllPaymentsByPeriod(0, 10, from, to);
+        OrderCreatedEvent event = new OrderCreatedEvent(
+                1L,
+                1L,
+                items,
+                "CREATED",
+                LocalDateTime.now(),
+                BigDecimal.TEN
+        );
 
-        assertThat(total).isEqualByComparingTo(BigDecimal.valueOf(150));
-    }
+        kafkaTemplate.send(orderCreatedTopic, String.valueOf(event.orderId()), event);
 
-    @Test
-    void getUserPaymentsByPeriod_shouldReturnCorrectSum() {
-        Instant from = Instant.now().minus(7, ChronoUnit.DAYS);
-        Instant to = Instant.now();
-        Long userId = 1L;
+        Pageable pageable = PageRequest.of(0, 10);
 
-        BigDecimal total = paymentService.getUserPaymentsByPeriod(0, 10, userId, from, to);
-
-        assertThat(total).isEqualByComparingTo(BigDecimal.valueOf(120));
+        await()
+                .pollInterval(Duration.ofSeconds(3))
+                .atMost(Duration.ofSeconds(10))
+                .untilAsserted(() -> {
+                    Page<Payment> payment = paymentRepository.findByOrderId(
+                            1L, pageable
+                    );
+                    assertThat(payment.getContent()).isNotEmpty();
+                    assertThat(payment.getContent().get(0).getUserId()).isEqualTo(1L);
+                });
     }
 
     @Test
     void createPayment_shouldSavePayment() {
-        PaymentRequest request = new PaymentRequest(3L, 3L, "PROCESSING", BigDecimal.valueOf(200));
-
+        PaymentRequest request = new PaymentRequest(1L, 1L, "CREATED", BigDecimal.TEN);
         PaymentResponse response = paymentService.createPayment(request);
 
         assertThat(response).isNotNull();
-        assertThat(response.paymentAmount()).isEqualByComparingTo(BigDecimal.valueOf(200));
-        assertThat(paymentRepository.findById(response.id())).isPresent();
+        assertThat(response.orderId()).isEqualTo(1L);
+        assertThat(response.userId()).isEqualTo(1L);
+        assertThat(response.paymentAmount()).isEqualByComparingTo(BigDecimal.TEN);
+
+        Optional<Payment> payment = paymentRepository.findById(response.id());
+
+        assertThat(payment).isPresent();
+        assertThat(payment.get().getOrderId()).isEqualTo(1L);
+    }
+
+    @Test
+    void getPaymentsByOrderId() {
+        Payment p1 = payment(1, 1, PaymentStatus.CREATED, 3600, 10);
+        Payment p2 = payment(1, 1, PaymentStatus.CREATED, 0, 20);
+        Payment p3 = payment(2, 2, PaymentStatus.ERROR, 0, 30);
+
+        paymentRepository.saveAll(List.of(p1, p2, p3));
+
+        List<PaymentResponse> paymentResponseList = paymentService.getPaymentsByOrderId(0, 10, 1L);
+        assertThat(paymentResponseList).hasSize(2);
+        assertThat(paymentResponseList.get(0).orderId()).isEqualTo(1L);
+    }
+
+    @Test
+    void getPaymentsByUserId() {
+        Payment p1 = payment(1, 1, PaymentStatus.CREATED, 3600, 10);
+        Payment p2 = payment(1, 1, PaymentStatus.CREATED, 0, 20);
+        Payment p3 = payment(2, 2, PaymentStatus.ERROR, 0, 30);
+
+        paymentRepository.saveAll(List.of(p1, p2, p3));
+
+        List<PaymentResponse> byUser = paymentService.getPaymentsByUserId(0, 10, 1L);
+        assertThat(byUser).hasSize(2);
+    }
+
+    @Test
+    void getAllPaymentsByPeriod() {
+        Payment p1 = payment(1, 1, PaymentStatus.CREATED, 3600, 10);
+        Payment p2 = payment(1, 1, PaymentStatus.CREATED, 0, 20);
+        Payment p3 = payment(2, 2, PaymentStatus.ERROR, 0, 30);
+
+        paymentRepository.saveAll(List.of(p1, p2, p3));
+
+        Instant from = Instant.now().minusSeconds(7200);
+        Instant to = Instant.now().plusSeconds(60);
+
+        BigDecimal totalAll = paymentService.getAllPaymentsByPeriod(0, 10, from, to);
+        assertThat(totalAll).isEqualByComparingTo(BigDecimal.valueOf(60));
+    }
+
+    @Test
+    void getUserPaymentsByPeriod() {
+        Payment p1 = payment(1, 1, PaymentStatus.CREATED, 3600, 10);
+        Payment p2 = payment(1, 1, PaymentStatus.CREATED, 0, 20);
+        Payment p3 = payment(2, 2, PaymentStatus.ERROR, 0, 30);
+
+        paymentRepository.saveAll(List.of(p1, p2, p3));
+
+        Instant from = Instant.now().minusSeconds(7200);
+        Instant to = Instant.now().plusSeconds(60);
+
+        BigDecimal totalUser300 = paymentService.getUserPaymentsByPeriod(0, 10, 1L, from, to);
+        assertThat(totalUser300).isEqualByComparingTo(BigDecimal.valueOf(30));
     }
 }

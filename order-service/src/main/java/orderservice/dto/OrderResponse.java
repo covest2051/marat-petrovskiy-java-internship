@@ -17,5 +17,7 @@ public record OrderResponse(
 
         LocalDateTime creationDate,
 
-        List<OrderItem>orderItems) {
+        List<OrderItem>orderItems,
+
+        UserResponse user) {
 }
