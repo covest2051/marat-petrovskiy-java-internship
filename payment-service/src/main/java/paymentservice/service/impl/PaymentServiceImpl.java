@@ -3,6 +3,7 @@ package paymentservice.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import paymentservice.client.RandomNumberClient;
@@ -13,6 +14,7 @@ import paymentservice.entity.Payment;
 import paymentservice.entity.PaymentStatus;
 import paymentservice.kafka.PaymentEventProducer;
 import paymentservice.kafka.event.OrderCreatedEvent;
+import paymentservice.kafka.event.PaymentCreatedEvent;
 import paymentservice.repository.PaymentRepository;
 import paymentservice.service.PaymentService;
 

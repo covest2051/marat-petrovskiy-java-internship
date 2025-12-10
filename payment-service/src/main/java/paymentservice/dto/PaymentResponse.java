@@ -1,7 +1,5 @@
 package paymentservice.dto;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import paymentservice.entity.PaymentStatus;
 
 import java.math.BigDecimal;

@@ -8,25 +8,85 @@ variables:
   MAVEN_CLI_OPTS: "-B -s .m2/settings.xml --batch-mode"
   DOCKER_IMAGE: "registry.gitlab.com/<ваш-namespace>/<ваш-проект>:latest"
 
-#cache:
-#  paths:
-#    - .m2/repository
+cache:
+  paths:
+    - .m2/repository
 
-build:
+
+# билд
+.build_template: &build_template
+  image: maven:3.9.2-eclipse-temurin-22
   stage: build
-  image: maven:3.9.2-eclipse-temurin-22
   script:
-    - mvn $MAVEN_CLI_OPTS clean compile
+    - mvn $MAVEN_CLI_OPTS -f $SERVICE/pom.xml clean compile
   only:
     - branches
 
-test:
-  stage: test
+build_authentication_service:
+  <<: *build_template
+  variables:
+    SERVICE: "authentication-service"
+
+build_user_service:
+  <<: *build_template
+  variables:
+    SERVICE: "user-service"
+
+build_order_service:
+  <<: *build_template
+  variables:
+    SERVICE: "order-service"
+
+build_api_gateway:
+  <<: *build_template
+  variables:
+    SERVICE: "api-gateway"
+
+build_payment_service:
+  <<: *build_template
+  variables:
+    SERVICE: "payment-service"
+
+# тест
+.test_template: &test_template
   image: maven:3.9.2-eclipse-temurin-22
+  stage: test
   script:
-    - mvn $MAVEN_CLI_OPTS test
+    - mvn $MAVEN_CLI_OPTS -f $SERVICE/pom.xml test
   only:
     - branches
+  dependencies:
+    - build_authentication_service
+    - build_user_service
+    - build_order_service
+    - build_api_gateway
+    - build_payment_service
+
+
+test_authentication_service:
+  <<: *test_template
+  variables:
+    SERVICE: "authentication-service"
+
+test_user_service:
+  <<: *test_template
+  variables:
+    SERVICE: "user-service"
+
+test_order_service:
+  <<: *test_template
+  variables:
+    SERVICE: "order-service"
+
+test_api_gateway:
+  <<: *test_template
+  variables:
+    SERVICE: "api-gateway"
+
+test_payment_service:
+  <<: *test_template
+  variables:
+    SERVICE: "payment-service"
 
 sonarqube:
   stage: code_analysis
@@ -43,8 +103,7 @@ sonarqube:
   dependencies:
     - build
 
-docker_build:
-  stage: docker_build
+.docker_build_template: &docker_build_template
   image: docker:24.0.2
   services:
     - docker:dind
@@ -52,10 +111,40 @@ docker_build:
     DOCKER_TLS_CERTDIR: "/certs"
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+  stage: docker_build
   script:
-    - docker build -t $DOCKER_IMAGE .
-    - docker push $DOCKER_IMAGE
+    - docker build -t $CI_REGISTRY_IMAGE/$SERVICE:$CI_COMMIT_SHORT_SHA $SERVICE
+    - docker push $CI_REGISTRY_IMAGE/$SERVICE:$CI_COMMIT_SHORT_SHA
   only:
     - branches
   dependencies:
-    - test
+    - test_authentication
+    - test_user
+    - test_order
+    - test_api_gateway
+    - test_payment
+
+docker_build_authentication_service:
+  <<: *docker_build_template
+  variables:
+    SERVICE: "authentication-service"
+
+docker_build_user_service:
+  <<: *docker_build_template
+  variables:
+    SERVICE: "user-service"
+
+docker_build_order_service:
+  <<: *docker_build_template
+  variables:
+    SERVICE: "order-service"
+
+docker_build_api_gateway:
+  <<: *docker_build_template
+  variables:
+    SERVICE: "api-gateway"
+
+docker_build_payment_service:
+  <<: *docker_build_template
+  variables:
+    SERVICE: "payment-service"

@@ -66,6 +66,22 @@ services:
       timeout: 5s
       retries: 5
 
+  mongo:
+    image: mongo:6
+    container_name: java-internship-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+
   redis:
     image: redis:7
     container_name: java-internship-redis
@@ -173,6 +189,36 @@ services:
       SECURITY_JWT_SECRET: "619296d21b477d598dc0dc0ec8eec349"
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:8085/actuator/health || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    container_name: payment-service
+    restart: always
+    depends_on:
+      - mongo
+      - kafka
+      - redis
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/innowisedb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_LIQUIBASE_ENABLED: "false"
+
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      TOPIC_ORDER_CREATED: test-order-created-topic
+
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 10
