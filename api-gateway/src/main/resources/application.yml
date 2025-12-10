@@ -1,11 +1,12 @@
 spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
   application:
     name: api-gateway
   cloud:
     gateway:
-      server:
-        webflux:
-          routes:
+      routes:
             - id: auth-service
               uri: http://auth-service:8081
               predicates:
@@ -15,7 +16,7 @@ spring:
                 - RewritePath=/auth/(?<remaining>.*), /$\{remaining}
 
             - id: user-service
-              uri: http://user-service:8082
+              uri: http://user-service:8080
               predicates:
                 - Path=/user/**
               filters:

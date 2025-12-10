@@ -27,7 +27,6 @@ public class Main {
         System.out.println(somePrototypeComponent1);
         System.out.println(somePrototypeComponent1.getBeanToInjectInComponent());
 
-        // Наглядная демонстрация скоупа :)
         System.out.println(someSingletonComponentComponent1 == someSingletonComponentComponent2);
         System.out.println(somePrototypeComponent1 == somePrototypeComponent2);
     }

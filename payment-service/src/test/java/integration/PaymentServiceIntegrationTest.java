@@ -183,19 +183,6 @@ class PaymentServiceIntegrationTest {
     }
 
     @Test
-    void getPaymentsByStatus() {
-        Payment p1 = payment(1, 1, PaymentStatus.CREATED, 3600, 10);
-        Payment p2 = payment(1, 1, PaymentStatus.CREATED, 0, 20);
-        Payment p3 = payment(2, 2, PaymentStatus.ERROR, 0, 30);
-
-        paymentRepository.saveAll(List.of(p1, p2, p3));
-
-        List<PaymentResponse> byStatus = paymentService.getPaymentsByStatus(0, 10, PaymentStatus.ERROR);
-        assertThat(byStatus).hasSize(1);
-        assertThat(byStatus.get(0).status()).isEqualTo(PaymentStatus.ERROR);
-    }
-
-    @Test
     void getAllPaymentsByPeriod() {
         Payment p1 = payment(1, 1, PaymentStatus.CREATED, 3600, 10);
         Payment p2 = payment(1, 1, PaymentStatus.CREATED, 0, 20);

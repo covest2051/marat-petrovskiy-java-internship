@@ -28,14 +28,12 @@ public class MetricsFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
 
-        //  считаем вызовы отдельно для каждого path
         Counter.builder("gateway.route.calls")
                 .description("Number of calls per route")
                 .tag("route", path)
                 .register(registry)
                 .increment();
 
-        // общее количество запросов
         Counter.builder("gateway.rps")
                 .description("Requests per second")
                 .register(registry)
@@ -47,14 +45,12 @@ public class MetricsFilter implements GlobalFilter, Ordered {
                 .doOnSuccess((_) -> {
                     long duration = System.currentTimeMillis() - start;
 
-                    // латенси
                     Timer.builder("gateway.route.latency")
                             .description("Request latency per route")
                             .tag("route", path)
                             .register(registry)
                             .record(duration, TimeUnit.MILLISECONDS);
 
-                    // сколько каких статусов возвращают сервисы
                     String status = String.valueOf(exchange.getResponse().getStatusCode() != null ?
                             exchange.getResponse().getStatusCode().value() : 0);
                     Counter.builder("gateway.route.status")
