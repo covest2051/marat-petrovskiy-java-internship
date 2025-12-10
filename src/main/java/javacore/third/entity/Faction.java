@@ -7,7 +7,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-// В выводе дней в два раза больше чем ночей потому что у Faction общий счётчик :)
 @Getter
 public abstract class Faction extends Thread {
     protected final Warehouse warehouse;

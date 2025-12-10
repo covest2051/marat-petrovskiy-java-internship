@@ -9,10 +9,6 @@
             http://www.liquibase.org/xml/ns/dbchangelog-ext
               http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
-
-    <!-- Очень мало информации в интернете про использование Liquibase с MongoDB. Кто-то писал, что вообще для MongoDB Liquibase не используют и
-    предлагал другие тулы, кто-то предлагал расширения использовать. В общем, с горем пополам, на просторах интернета нашёл такую реализацию,
-    надеюсь, что верно -->
     <changeSet id="1" author="marat-petrovskiy">
         <ext:createCollection collectionName="payments"/>
 

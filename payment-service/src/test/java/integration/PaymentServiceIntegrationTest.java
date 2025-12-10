@@ -29,8 +29,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
-// TODO: доделать Implement Integration tests using WireMock and TestContainers (MongoDB and Kafka)
 @Testcontainers
 @SpringBootTest(classes = PaymentServiceApplication.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -99,13 +97,6 @@ public class PaymentServiceIntegrationTest {
 
         assertThat(total).isEqualByComparingTo(BigDecimal.valueOf(120));
     }
-
-//    @Test
-//    void getPaymentsByStatus_shouldReturnPayments() {
-//        List<Payment> completed = paymentRepository.findAllByStatus(PaymentStatus.COMPLETE, );
-//
-//        assertThat(completed).hasSize(2);
-//    }
 
     @Test
     void createPayment_shouldSavePayment() {

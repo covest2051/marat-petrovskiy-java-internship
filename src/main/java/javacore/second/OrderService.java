@@ -32,10 +32,6 @@ public class OrderService {
         return totalOrdersIncome;
     }
 
-    // Не совсем понял формулировку "The most popular product by sales". Можно трактовать
-    // 1) как продукт, на который пользователи потратили больше всего денег, так и
-    // 2) как продукт, который купили большее количество раз
-    // Этот метод реализует логику 1), следующий метод реализует логику 2)
     public List<OrderItem> getMostPopularProductsBySales(List<Order> orders) {
         Map<String, Double> salesByProduct = orders.stream()
                 .flatMap(order -> order.getItems().stream())
@@ -95,8 +91,6 @@ public class OrderService {
         return averageCheckForOrderWithStatusDelivered;
     }
 
-    // Подумал, что лучше количество товаров для поиска передавать в параметрах
-    // Если додумывать самому не стоит - исправлю и больше не буду :)
     public List<Customer> getCustomerWithOrdersMoreThanN(List<Order> orders, int n) {
         List<Customer> customerWithOrdersMoreThanN = orders.stream()
                 .collect(Collectors.groupingBy(Order::getCustomer, Collectors.counting()))
