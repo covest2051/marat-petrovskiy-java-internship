@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: innowise-config-server-deployment
+  labels:
+    app: innowise-config-server
+spec:
+  selector:
+    matchLabels:
+      app: innowise-config-server
+  template:
+    metadata:
+      labels:
+        app: innowise-config-server
+    spec:
+      containers:
+        - name: innowise-config-server
+          image: 192.168.49.1:5000/innowise/config-server:24.1.1
+          ports:
+            - containerPort: 8888
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: git
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: innowise-config-server-svc
+spec:
+  type: NodePort
+  ports:
+    - port: 8888
+      name: http
+  selector:
+    app: innowise-config-server
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: innowise-config-server-ingress
+spec:
+  rules:
+    - host: config.inn.wise.192.168.49.2.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: innowise-config-server-svc
+                port:
+                  name: http
+
+

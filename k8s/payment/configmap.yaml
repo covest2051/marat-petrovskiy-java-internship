@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-config
+  namespace: microservices
+data:
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: "kafka:29092"
+  SPRING_REDIS_HOST: "redis"
+  SPRING_REDIS_PORT: "6379"
+  TOPIC_ORDER_CREATED: "order-created-topic"

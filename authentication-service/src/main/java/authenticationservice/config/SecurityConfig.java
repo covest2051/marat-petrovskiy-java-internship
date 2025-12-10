@@ -2,6 +2,7 @@ package authenticationservice.config;
 
 import authenticationservice.security.JwtAuthenticationFilter;
 import authenticationservice.service.AuthenticationUserDetailsService;
+import jakarta.servlet.http.HttpServlet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,7 +28,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationUserDetailsService userDetailsService;
-
+    HttpServlet httpServlet;    
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+              http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd
+            http://www.liquibase.org/xml/ns/dbchangelog-ext
+              http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <changeSet id="1" author="marat-petrovskiy">
+        <ext:createCollection collectionName="payments"/>
+
+        <ext:createIndex collectionName="payments" indexName="idx_payments_order_id">
+            <ext:indexField name="order_id" ascending="true"/>
+        </ext:createIndex>
+
+        <ext:createIndex collectionName="payments" indexName="idx_payments_user_id">
+            <ext:indexField name="user_id" ascending="true"/>
+        </ext:createIndex>
+
+        <ext:createIndex collectionName="payments" indexName="idx_payments_status">
+            <ext:indexField name="status" ascending="true"/>
+        </ext:createIndex>
+
+        <ext:createIndex collectionName="payments" indexName="idx_payments_timestamp">
+            <ext:indexField name="timestamp" ascending="true"/>
+        </ext:createIndex>
+    </changeSet>
+</databaseChangeLog>
