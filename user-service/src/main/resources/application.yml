@@ -11,6 +11,15 @@ spring:
     show-sql: false
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
+  cache:
+    type: redis
+    redis:
+      time-to-live: 10m
+  data:
+    redis:
+      host: redis
+      timeout: 2000ms
+      port: 6379
 
 server:
   port: 8080

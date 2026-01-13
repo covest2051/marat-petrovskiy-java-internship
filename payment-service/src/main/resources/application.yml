@@ -12,5 +12,16 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
+  cache:
+    type: redis
+    redis:
+      time-to-live: 10m
+  data:
+    redis:
+      host: redis
+      port: 6379
+      timeout: 2000ms
+
 topic:
-  payment-created: create-payment-event-topic
+  order-created: test-order-created-topic
+  payment-created: test-payment-created-topic

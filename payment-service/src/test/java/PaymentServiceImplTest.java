@@ -97,8 +97,7 @@ class PaymentServiceImplTest {
 
     @Test
     void getPaymentsByOrderId_shouldReturnPayments() {
-        Payment payment = new Payment();
-        Page<Payment> page = new PageImpl<>(List.of(payment));
+        Page<Payment> page = new PageImpl<>(List.of(new Payment()));
 
         when(paymentRepository.findByOrderId(eq(1L), any(Pageable.class)))
                 .thenReturn(page);
@@ -115,10 +114,9 @@ class PaymentServiceImplTest {
 
     @Test
     void getPaymentsByUserId_shouldReturnPayments() {
-        Payment payment = new Payment();
-        Page<Payment> page = new PageImpl<>(List.of(payment));
+        Page<Payment> page = new PageImpl<>(List.of(new Payment()));
 
-        when(paymentRepository.findAllByUserId(eq(1L), any(Pageable.class)))
+        when(paymentRepository.findByOrderId(eq(1L), any(Pageable.class)))
                 .thenReturn(page);
 
         when(paymentMapper.toPaymentResponseList(any()))
