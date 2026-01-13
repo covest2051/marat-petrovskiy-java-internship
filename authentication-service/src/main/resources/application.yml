@@ -1,23 +1,26 @@
 spring:
-  main:
-    web-application-type: servlet
   application:
     name: authentication-service
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/innowisedb}
-    username: ${SPRING_DATASOURCE_USERNAME:postgres}
-    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    url: jdbc:postgresql://java-internship-postgres:5432/innowisedb
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
   liquibase:
     enabled: ${SPRING_LIQUIBASE_ENABLED:false}
   cache:
     type: redis
+    redis:
+      time-to-live: 10m
   data:
     redis:
       host: redis
+      timeout: 2000ms
       port: 6379
 
 server:
@@ -29,9 +32,9 @@ server:
 
 security:
   jwt:
-    secret: ${SECURITY_JWT_SECRET:619296d21b477d598dc0dc0ec8eec349}
-    access-expiration-ms: ${SECURITY_JWT_ACCESS_EXPIRATION_MS:900000}
-    refresh-expiration-ms: ${SECURITY_JWT_REFRESH_EXPIRATION_MS:2592000000}
+    secret: 619296d21b477d598dc0dc0ec8eec349
+    access-expiration-ms: 900000
+    refresh-expiration-ms: 2592000000
 
 management:
   endpoints:

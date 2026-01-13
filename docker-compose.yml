@@ -1,17 +1,23 @@
-version: '3.9'
-
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:8.2.3
+    image: confluentinc/cp-zookeeper:7.6.1
     container_name: zookeeper
     restart: unless-stopped
     networks:
       - backend
     ports:
       - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "2181" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   kafka:
-    image: confluentinc/cp-kafka:8.2.3
+    image: confluentinc/cp-kafka:7.6.1
     container_name: kafka
     restart: unless-stopped
     networks:
@@ -27,11 +33,12 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     depends_on:
-      - zookeeper
+      zookeeper:
+        condition: service_healthy
     volumes:
       - kafka-data:/var/lib/kafka/data
     healthcheck:
-      test: ["CMD", "bash", "-c", "kafka-broker-api-versions --bootstrap-server kafka:9092 || exit 1"]
+      test: [ "CMD", "bash", "-c", "kafka-broker-api-versions --bootstrap-server kafka:9092 || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -47,11 +54,17 @@ services:
     environment:
       KAFKA_BROKERCONNECT: "kafka:29092"
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
 
   postgres:
     image: postgres:15
     container_name: java-internship-postgres
+    networks:
+      backend:
+        aliases:
+          - postgres
+          - java-internship-postgres
     environment:
       POSTGRES_DB: innowisedb
       POSTGRES_USER: postgres
@@ -75,7 +88,7 @@ services:
     volumes:
       - mongo-data:/data/db
     healthcheck:
-      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -85,6 +98,8 @@ services:
   redis:
     image: redis:7
     container_name: java-internship-redis
+    networks:
+      - backend
     ports:
       - "6379:6379"
     healthcheck:
@@ -100,9 +115,12 @@ services:
     container_name: authentication-service
     restart: always
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "8081:8081"
+    networks:
+      - backend
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/innowisedb
       SPRING_DATASOURCE_USERNAME: postgres
@@ -125,13 +143,16 @@ services:
     container_name: user-service
     restart: always
     depends_on:
-      - postgres
-      - redis
-      - authentication-service
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      authentication-service:
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/innowisedb
+      SPRING_DATASOURCE_URL: jdbc:postgresql://java-internship-postgres:5432/innowisedb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
@@ -148,13 +169,16 @@ services:
     container_name: order-service
     restart: always
     depends_on:
-      - postgres
-      - redis
-      - user-service
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
     ports:
       - "8082:8082"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/innowisedb
+      SPRING_DATASOURCE_URL: jdbc:postgresql://java-internship-postgres:5432/innowisedb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
@@ -182,9 +206,12 @@ services:
     ports:
       - "8085:8085"
     depends_on:
-      - authentication-service
-      - user-service
-      - order-service
+      order-service:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      authentication-service:
+        condition: service_healthy
     environment:
       SECURITY_JWT_SECRET: "619296d21b477d598dc0dc0ec8eec349"
     healthcheck:
@@ -200,13 +227,18 @@ services:
     container_name: payment-service
     restart: always
     depends_on:
-      - mongo
-      - kafka
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
     ports:
       - "8083:8083"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/innowisedb
+      SPRING_DATASOURCE_URL: jdbc:postgresql://java-internship-postgres:5432/innowisedb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
@@ -226,3 +258,9 @@ services:
 
 volumes:
   pgdata:
+  kafka-data:
+  mongo-data:
+
+networks:
+  backend:
+    driver: bridge

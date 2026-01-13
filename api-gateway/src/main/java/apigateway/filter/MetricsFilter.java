@@ -42,7 +42,7 @@ public class MetricsFilter implements GlobalFilter, Ordered {
         long start = System.currentTimeMillis();
 
         return chain.filter(exchange)
-                .doOnSuccess((_) -> {
+                .doOnSuccess(ignored -> {
                     long duration = System.currentTimeMillis() - start;
 
                     Timer.builder("gateway.route.latency")
@@ -51,8 +51,12 @@ public class MetricsFilter implements GlobalFilter, Ordered {
                             .register(registry)
                             .record(duration, TimeUnit.MILLISECONDS);
 
-                    String status = String.valueOf(exchange.getResponse().getStatusCode() != null ?
-                            exchange.getResponse().getStatusCode().value() : 0);
+                    String status = String.valueOf(
+                            exchange.getResponse().getStatusCode() != null
+                                    ? exchange.getResponse().getStatusCode().value()
+                                    : 0
+                    );
+
                     Counter.builder("gateway.route.status")
                             .description("HTTP status codes per route")
                             .tag("route", path)

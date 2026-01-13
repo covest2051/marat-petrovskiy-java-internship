@@ -4,7 +4,7 @@ metadata:
   name: order-config
   namespace: microservices
 data:
-  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres:5432/innowisedb"
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://java-internship-postgres:5432/innowisedb"
   SPRING_DATASOURCE_USERNAME: "postgres"
   SPRING_LIQUIBASE_ENABLED: "false"
   USER_SERVICE_URL: "http://user-service:8080"
