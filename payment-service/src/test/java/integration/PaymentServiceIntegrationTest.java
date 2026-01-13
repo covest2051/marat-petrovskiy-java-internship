@@ -6,13 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
-import org.testcontainers.mongodb.MongoDBContainer;
+import org.testcontainers.mongodb.MongoDBAtlasLocalContainer;
 import org.testcontainers.utility.DockerImageName;
 import paymentservice.PaymentServiceApplication;
 import paymentservice.dto.PaymentRequest;
@@ -40,25 +38,12 @@ public class PaymentServiceIntegrationTest {
     );
 
     @Container
-    static final MongoDBContainer mongoDBContainer = new MongoDBContainer(
+    static final MongoDBAtlasLocalContainer mongoDBContainer = new MongoDBAtlasLocalContainer(
             DockerImageName.parse("mongo:4.0.10")
     );
 
     static WireMockServer wireMockServer = new WireMockServer(8089);
 
-
-    @Container
-    static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:15")
-            .withDatabaseName("innowisedb")
-            .withUsername("postgres")
-            .withPassword("postgres");
-
-    @DynamicPropertySource
-    static void setDatasourceProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
-        registry.add("spring.datasource.username", postgresContainer::getUsername);
-        registry.add("spring.datasource.password", postgresContainer::getPassword);
-    }
 
     @Autowired
     private PaymentService paymentService;

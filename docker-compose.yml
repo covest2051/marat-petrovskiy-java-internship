@@ -238,6 +238,7 @@ services:
     ports:
       - "8083:8083"
     environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/payment_db
       SPRING_DATASOURCE_URL: jdbc:postgresql://java-internship-postgres:5432/innowisedb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
