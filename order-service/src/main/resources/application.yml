@@ -22,7 +22,7 @@ management:
 
 spring:
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: kafka:29092
 
     consumer:
       group-id: payment-service-group
@@ -48,3 +48,4 @@ spring:
 
 topic:
   order-created: test-order-created-topic
+  payment-created: test-payment-created-topic
