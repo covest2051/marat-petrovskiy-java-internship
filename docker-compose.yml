@@ -27,8 +27,7 @@ services:
     environment:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: DOCKER_INTERNAL:PLAINTEXT,DOCKER_EXTERNAL:PLAINTEXT
       KAFKA_LISTENERS: DOCKER_INTERNAL://:29092,DOCKER_EXTERNAL://:9092
-      KAFKA_ADVERTISED_LISTENERS: DOCKER_INTERNAL://kafka:29092,DOCKER_EXTERNAL://kafka:9092
-      # Или строка выше KAFKA_ADVERTISED_LISTENERS: DOCKER_INTERNAL://kafka:29092,DOCKER_EXTERNAL://kafka:9092
+      KAFKA_ADVERTISED_LISTENERS: DOCKER_INTERNAL://kafka:29092,DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: DOCKER_INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
       KAFKA_BROKER_ID: 1
@@ -62,7 +61,10 @@ services:
     image: postgres:15
     container_name: java-internship-postgres
     networks:
-      - backend
+      backend:
+        aliases:
+          - postgres
+          - java-internship-postgres
     environment:
       POSTGRES_DB: innowisedb
       POSTGRES_USER: postgres
@@ -149,23 +151,16 @@ services:
         condition: service_healthy
     ports:
       - "8080:8080"
-    networks:
-      - backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/innowisedb
+      SPRING_DATASOURCE_URL: jdbc:postgresql://java-internship-postgres:5432/innowisedb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
+      # Где auth-service ожидает секрет — убедитесь, что SECRET одинаков в обоих сервисах
       SECURITY_JWT_SECRET: "619296d21b477d598dc0dc0ec8eec349"
       AUTH_SERVICE_URL: http://authentication-service:8081
-      SPRING_DATA_REDIS_REPOSITORIES_ENABLED: "false"
-    healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   order-service:
     build:
@@ -180,23 +175,16 @@ services:
         condition: service_healthy
       user-service:
         condition: service_healthy
-      kafka:
-        condition: service_healthy
     ports:
       - "8082:8082"
-    networks:
-      - backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/innowisedb
+      SPRING_DATASOURCE_URL: jdbc:postgresql://java-internship-postgres:5432/innowisedb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
       SPRING_LIQUIBASE_ENABLED: "false"
-      TOPIC_PAYMENT_CREATED: payment-created-topic
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-      SERVER_PORT: 8082
 
       USER_SERVICE_URL: http://user-service:8080
       AUTH_SERVICE_URL: http://authentication-service:8081
@@ -204,7 +192,7 @@ services:
       SECURITY_JWT_SECRET: "619296d21b477d598dc0dc0ec8eec349"
 
     healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health" ]
+      test: [ "CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -216,9 +204,7 @@ services:
     container_name: api-gateway
     restart: always
     ports:
-      - "8085:8080"
-    networks:
-      - backend
+      - "8085:8085"
     depends_on:
       order-service:
         condition: service_healthy
@@ -251,16 +237,13 @@ services:
         condition: service_healthy
     ports:
       - "8083:8083"
-    networks:
-      - backend
     environment:
       SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/payment_db
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/innowisedb
+      SPRING_DATASOURCE_URL: jdbc:postgresql://java-internship-postgres:5432/innowisedb
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_LIQUIBASE_ENABLED: "false"
-      SERVER_PORT: 8083
 
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       TOPIC_ORDER_CREATED: test-order-created-topic
@@ -268,7 +251,7 @@ services:
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
     healthcheck:
-      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health" ]
+      test: [ "CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 10

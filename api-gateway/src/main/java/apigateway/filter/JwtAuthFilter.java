@@ -53,14 +53,12 @@ public class JwtAuthFilter implements GlobalFilter {
         return jwtUtil.validateTokenReactive(token)
                 .flatMap(claims -> {
                     ServerHttpRequest mutated = exchange.getRequest().mutate()
-                            .header("X-User-Id", String.valueOf(claims.getSubject()))
+                            .header("X-User-Id", String.valueOf(claims.get("userId")))
                             .build();
                     return chain.filter(exchange.mutate().request(mutated).build());
                 })
-                .onErrorResume(e -> {
-                    System.err.println("DEBUG: JWT Validation Failed!");
-                    e.printStackTrace();
-                    return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token: " + e.getMessage()));
-                });
+                .onErrorResume(e -> Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token")));
     }
 }
+
+

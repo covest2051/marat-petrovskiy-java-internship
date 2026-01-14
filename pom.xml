@@ -249,12 +249,10 @@
             </dependency>
 
             <!-- ===== DOCUMENTATION ===== -->
-            <!-- Source: https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webflux-ui -->
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
-                <version>3.0.0</version>
-                <scope>compile</scope>
+                <version>2.8.13</version>
             </dependency>
 
             <!-- ===== TEST CONTAINERS ===== -->
