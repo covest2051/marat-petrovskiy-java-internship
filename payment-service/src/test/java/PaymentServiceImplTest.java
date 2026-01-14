@@ -127,7 +127,6 @@ class PaymentServiceImplTest {
         assertNotNull(result);
         verify(paymentRepository).findAllByUserId(eq(1L), any(Pageable.class));
         verify(paymentMapper).toPaymentResponseList(any());
-
     }
 
     @Test
