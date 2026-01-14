@@ -18,15 +18,12 @@
 
     <dependencies>
         <!-- Spring Cloud Gateway -->
+        <!-- Source: https://mvnrepository.com/artifact/org.springframework.cloud/spring-cloud-starter-gateway -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway</artifactId>
-        </dependency>
-
-        <!-- Spring Boot WebFlux (Reactive) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
+            <version>4.3.2</version>
+            <scope>compile</scope>
         </dependency>
 
         <!-- Spring Security -->
@@ -50,9 +47,12 @@
         </dependency>
 
         <!-- API Documentation -->
+        <!-- Source: https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webflux-ui -->
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+            <version>2.6.0</version>
+            <scope>compile</scope>
         </dependency>
 
         <!-- Utilities -->
