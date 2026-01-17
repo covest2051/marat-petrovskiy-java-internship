@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-record RegisterRequest(String email, String password, String name, String surname) {
+record RegisterRequest(String login, String password, String name, String surname) {
 }
 
 record AuthResponse(Long userId, String email) {

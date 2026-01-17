@@ -1,32 +1,36 @@
 # Конфигурация
 $GatewayUrl = "http://localhost:8085"
-$Login = "user_$(Get-Random)"  # Теперь используем login
-$UserPassword = "password123"
+$Login = "maratperovitch@gmail.com"  # Фиксированный логин, как вы просили
+$UserPassword = "123456"
 
-Write-Host "--- 1. Попытка регистрации пользователя: $Login ---" -ForegroundColor Cyan
+Write-Host "--- Попытка регистрации пользователя: $Login ---" -ForegroundColor Cyan
 
+# Формируем тело запроса. УБЕДИТЕСЬ, что имена полей (login) совпадают с DTO в Java
 $regBody = @{
-    login     = "$UniqueLogin@example.com"
-    password  = "password123"
-    name      = "Ivan"
-    surname   = "Ivanov"
+    login     = $Login
+    password  = $UserPassword
+    name      = "Marat"
+    surname   = "Petrovskiy"
     birthDate = "1995-05-20"
 } | ConvertTo-Json
 
 try {
-    $regResponse = Invoke-RestMethod -Uri "$GatewayUrl/auth/register" -Method Post -Body $regBody -ContentType "application/json" -ErrorAction Stop
-    Write-Host "SUCCESS: Пользователь зарегистрирован." -ForegroundColor Green
-    Write-Host $regResponse
+    $regResponse = Invoke-RestMethod -Uri "$GatewayUrl/auth/register" `
+        -Method Post `
+        -Body $regBody `
+        -ContentType "application/json; charset=utf-8" `
+        -ErrorAction Stop
+
+    Write-Host "SUCCESS: Пользователь зарегистрирован!" -ForegroundColor Green
+    $regResponse | ConvertTo-Json | Write-Host
 } catch {
-      Write-Host "ERROR: Ошибка регистрации!" -ForegroundColor Red
-      if ($_.Exception.Response) {
-          $statusCode = [int]$_.Exception.Response.StatusCode
-          Write-Host "Status Code: $statusCode" -ForegroundColor Yellow
-          $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
-          $responseBody = $reader.ReadToEnd()
-          Write-Host "Response Body: $responseBody" -ForegroundColor White
-      } else {
-          Write-Host "Exception Message: $($_.Exception.Message)" -ForegroundColor Red
-      }
-      exit
-  }
+    Write-Host "ERROR: Ошибка регистрации!" -ForegroundColor Red
+    if ($_.Exception.Response) {
+        $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
+        $responseBody = $reader.ReadToEnd()
+        Write-Host "Status Code: $([int]$_.Exception.Response.StatusCode)" -ForegroundColor Yellow
+        Write-Host "Response Body: $responseBody" -ForegroundColor White
+    } else {
+        Write-Host "Exception: $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
