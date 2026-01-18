@@ -62,25 +62,7 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getPrincipal() == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
-        }
-
-        Long userId;
-        if (authentication.getPrincipal() instanceof Long) {
-            userId = (Long) authentication.getPrincipal();
-        } else if (authentication.getPrincipal() instanceof String) {
-            try {
-                userId = Long.parseLong((String) authentication.getPrincipal());
-            } catch (NumberFormatException e) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid user ID format");
-            }
-        } else {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid authentication principal");
-        }
-
+    public ResponseEntity<UserResponse> getCurrentUser(@RequestHeader("X-User-Id") Long userId) {
         return ResponseEntity.ok(userService.getUserById(userId));
     }
 }

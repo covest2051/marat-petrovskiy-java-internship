@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.security.Principal;
 import java.util.List;
 
 @Controller
@@ -27,7 +28,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody OrderRequest request) {
+    public ResponseEntity<OrderResponse> createOrder(Principal principal, @Valid @RequestBody OrderRequest request) {
         OrderResponse createdOrder = orderService.createOrder(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(createdOrder);

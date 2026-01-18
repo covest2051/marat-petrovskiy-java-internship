@@ -202,6 +202,8 @@ catch {
     $testResults += @{ Test = "Get User Profile"; Status = "FAIL" }
 }
 
+$userResponse | ConvertTo-Json | Write-Host
+
 # ============================================
 # STEP 6: Create Order
 # ============================================
@@ -232,14 +234,13 @@ try {
     $orderId = $orderResponse.id
 }
 catch {
-    $statusCode = $_.Exception.Response.StatusCode.Value
-    Write-Error "✗ Create Order FAILED (Status $statusCode)"
-
-    if ($statusCode -eq 500) {
-        Write-Host "Debug Order Service:" -ForegroundColor Yellow
-        Write-Host "  docker logs -f order-service --tail 100" -ForegroundColor Yellow
+    if ($_.Exception.Response) {
+        $statusCode = [int]$_.Exception.Response.StatusCode
+        Write-Error "✗ Create Order FAILED (Status $statusCode)"
+    } else {
+        Write-Error "✗ Create Order FAILED: Сервер не ответил (Connection Refused/Timeout)"
+        Write-Host "Детали: $($_.Exception.Message)" -ForegroundColor Gray
     }
-
     $testResults += @{ Test = "Create Order"; Status = "FAIL" }
 }
 

@@ -1,4 +1,4 @@
-package userservice.security;
+package orderservice.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -29,10 +29,9 @@ public class JwtProvider {
         this.refreshExpirationMs = refreshExpirationMs;
     }
 
-    public String generateAccessToken(Long userId, String login, String role) {
+    public String generateAccessToken(String login, String role) {
         return Jwts.builder()
                 .setSubject(login)
-                .claim("userId", userId)
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + accessExpirationMs))
