@@ -11,6 +11,7 @@ $regBody = @{
     password  = $UserPassword
     name      = "Marat"
     surname   = "Petrovskiy"
+    role      = "ROLE_USER"
     birthDate = "1995-05-20"
 } | ConvertTo-Json
 

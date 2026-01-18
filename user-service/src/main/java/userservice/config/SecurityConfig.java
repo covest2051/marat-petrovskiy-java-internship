@@ -37,6 +37,7 @@ public class SecurityConfig {
                     res.getWriter().write("{\"error\":\"Forbidden\"}");
                 }))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/internal/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/auth/register", "/auth/login").permitAll()
                         .anyRequest().authenticated()

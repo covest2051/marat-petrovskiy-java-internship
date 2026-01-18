@@ -39,7 +39,7 @@ public class AuthenticationController {
     public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
         System.out.println("DEBUG: Received login: " + req.getLogin());
         String role = Optional.ofNullable(req.getRole()).orElse("ROLE_USER");
-        authenticationService.register(req.getLogin(), req.getPassword(), role);
+        authenticationService.register(req);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 

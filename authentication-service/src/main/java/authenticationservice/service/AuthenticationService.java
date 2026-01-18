@@ -1,5 +1,6 @@
 package authenticationservice.service;
 
+import authenticationservice.dto.RegisterRequest;
 import authenticationservice.dto.TokenResponse;
 import authenticationservice.entity.UserCredential;
 import authenticationservice.repository.UserCredentialRepository;
@@ -9,8 +10,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +23,9 @@ public class AuthenticationService {
     private final UserCredentialRepository userCredentialRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
+    private final RestTemplate restTemplate;
+
+    private final String USER_SERVICE_URL = "http://user-service:8080/internal/users";
 
     public TokenResponse login(String login, String password) {
         UserCredential user = userCredentialRepository.findByLogin(login).orElseThrow(() -> new BadCredentialsException("Invalid login"));
@@ -48,14 +56,39 @@ public class AuthenticationService {
         }
     }
 
-    public void register(String login, String rawPassword, String role) {
-        if (userCredentialRepository.existsByLogin(login)) throw new IllegalArgumentException("Login exists");
+    @Transactional
+    public void register(RegisterRequest request) {
+        if (userCredentialRepository.existsByLogin(request.getLogin()))
+            throw new IllegalArgumentException("Login exists");
+
         UserCredential u = new UserCredential();
-        u.setLogin(login);
-        u.setPasswordHash(passwordEncoder.encode(rawPassword));
+        String role = request.getRole();
+        if (role == null || role.isBlank()) {
+            role = "ROLE_USER";
+        } else if (!role.startsWith("ROLE_")) {
+            role = "ROLE_" + role;
+        }
+
+        u.setLogin(request.getLogin());
+        u.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         u.setRole(role);
         u.setCreatedAt(Instant.now());
-        userCredentialRepository.save(u);
+
+        u = userCredentialRepository.save(u);
+
+        Map<String, Object> profileData = new HashMap<>();
+        profileData.put("id", u.getId());
+        profileData.put("email", request.getLogin());
+        profileData.put("name", request.getName());
+        profileData.put("surname", request.getSurname());
+
+        try {
+            restTemplate.postForEntity(USER_SERVICE_URL, profileData, Void.class);
+        } catch (Exception e) {
+            // Если user-service недоступен, транзакция откатится
+            // и пользователь в auth-service не будет создан
+            throw new RuntimeException("Не удалось создать профиль в User Service: " + e.getMessage());
+        }
     }
 
     public boolean validateAccessToken(String token) {
