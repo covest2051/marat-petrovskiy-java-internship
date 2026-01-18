@@ -60,5 +60,13 @@ public class JwtProvider {
         Object r = validateToken(token).getBody().get("role");
         return r == null ? null : r.toString();
     }
+
+    public Long getUserIdFromToken(String token) {
+        Object userId = validateToken(token).getBody().get("userId");
+        if (userId instanceof Number) {
+            return ((Number) userId).longValue();
+        }
+        return null;
+    }
 }
 
