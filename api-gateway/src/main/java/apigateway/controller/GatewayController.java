@@ -13,10 +13,10 @@ import reactor.core.publisher.Mono;
 record RegisterRequest(String login, String password, String name, String surname) {
 }
 
-record AuthResponse(Long userId, String email) {
+record AuthResponse(Long userId, String email, String accessToken) {
 }
 
-record UserResponse(Long id, String email, String name, String surname) {
+record  UserResponse(Long id, String email, String name, String surname) {
 }
 
 @RestController

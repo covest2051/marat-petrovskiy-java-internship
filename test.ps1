@@ -72,7 +72,15 @@ try {
         -ContentType "application/json" `
         -Body $authBody
 
-    $jwtToken = $authResponse.accessToken
+    $jwtToken = [string]$authResponse.accessToken
+
+    if ([string]::IsNullOrEmpty($jwtToken)) {
+        Write-Error "!!! КРИТИЧЕСКАЯ ОШИБКА: Токен не получен из ответа сервера !!!"
+        Write-Host "Ответ сервера был: $($authResponse | ConvertTo-Json)" -ForegroundColor Yellow
+        exit
+    } else {
+        Write-Host "DEBUG: Токен успешно записан в переменную. Длина: $($jwtToken.Length)" -ForegroundColor Gray
+    }
 
     if ($jwtToken) {
         Write-Success "✓ Authentication Successful (Status 200)"
@@ -99,6 +107,11 @@ catch {
     exit
 }
 
+Write-Host "DEBUG: Полный ответ Auth:" -ForegroundColor Gray
+$authResponse | ConvertTo-Json | Write-Host
+$jwtToken = $authResponse.accessToken
+$global:currentUserId = $authResponse.userId
+
 # ============================================
 # STEP 4:  Authenticate via API Gateway
 # ============================================
@@ -116,6 +129,19 @@ try {
         -Body $authBodyGateway
 
     $jwtTokenGateway = $authResponseGateway.accessToken
+    $jwtToken = [string]$authResponse.accessToken
+
+    if ([string]::IsNullOrEmpty($jwtToken)) {
+        Write-Error "!!! КРИТИЧЕСКАЯ ОШИБКА: Токен не получен из ответа сервера !!!"
+        Write-Host "Ответ сервера был: $($authResponse | ConvertTo-Json)" -ForegroundColor Yellow
+        exit
+    } else {
+        Write-Host "DEBUG: Токен успешно записан в переменную. Длина: $($jwtToken.Length)" -ForegroundColor Gray
+    }
+
+    if ($null -eq $jwtToken) {
+            throw "Gateway returned empty accessToken"
+    }
 
     Write-Success "✓ Gateway Authentication Successful (Status 200)"
     Write-Host "  JWT Token received from Gateway" -ForegroundColor Green
@@ -136,9 +162,11 @@ if (-not $jwtToken) {
 
 # Set headers for authenticated requests
 $headers = @{
-    "Authorization" = "Bearer $jwtToken"
+    "Authorization" = "Bearer $($jwtToken.Trim())"
     "Content-Type"  = "application/json"
 }
+
+Write-Host "ОТЛАДКА: Мой заголовок сейчас: $($headers.Authorization)" -ForegroundColor Magenta
 
 # ============================================
 # STEP 5: Get User Profile
@@ -157,6 +185,12 @@ try {
 catch {
     $statusCode = $_.Exception.Response.StatusCode.Value
     Write-Error "✗ Get User Profile FAILED (Status $statusCode)"
+
+    Write-Host "  Exception Message: $($_.Exception.Message)" -ForegroundColor Red
+
+    if ($_.Exception.Response) {
+        Write-Host "  Status Code: $($_.Exception.Response.StatusCode)" -ForegroundColor Yellow
+    }
 
     if ($statusCode -eq 401) {
         Write-Warning "Token may be invalid. Re-authenticate."

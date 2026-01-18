@@ -24,11 +24,11 @@ public class AuthenticationService {
         if (!passwordEncoder.matches(password, user.getPasswordHash())) {
             throw new BadCredentialsException("Invalid credentials");
         }
-        String access = jwtProvider.generateAccessToken(login, user.getRole());
+        String access = jwtProvider.generateAccessToken(user.getId(), login, user.getRole());
         String refresh = jwtProvider.generateRefreshToken(login);
         user.setRefreshToken(refresh);
         userCredentialRepository.save(user);
-        return new TokenResponse(access, refresh, jwtProvider.getAccessExpirationMs());
+        return new TokenResponse(access, refresh, jwtProvider.getAccessExpirationMs(), user.getId());
     }
 
     public TokenResponse refresh(String refreshToken) {
@@ -38,11 +38,11 @@ public class AuthenticationService {
             if (!refreshToken.equals(user.getRefreshToken())) {
                 throw new BadCredentialsException("Invalid refresh token");
             }
-            String newAccess = jwtProvider.generateAccessToken(login, user.getRole());
+            String newAccess = jwtProvider.generateAccessToken(user.getId(), login, user.getRole());
             String newRefresh = jwtProvider.generateRefreshToken(login);
             user.setRefreshToken(newRefresh);
             userCredentialRepository.save(user);
-            return new TokenResponse(newAccess, newRefresh, jwtProvider.getAccessExpirationMs());
+            return new TokenResponse(newAccess, newRefresh, jwtProvider.getAccessExpirationMs(), user.getId());
         } catch (JwtException ex) {
             throw new BadCredentialsException("Invalid refresh token");
         }
