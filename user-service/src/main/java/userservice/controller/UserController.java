@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 import userservice.dto.UserRequest;
 import userservice.dto.UserResponse;
+import userservice.entity.User;
 import userservice.service.UserService;
 
 import java.util.List;
@@ -62,7 +63,14 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getCurrentUser(@RequestHeader("X-User-Id") Long userId) {
+    public ResponseEntity<UserResponse> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = (Long) authentication.getPrincipal();
+
+        UserResponse user = userService.getUserById(userId);
+
+        System.out.println("User from DB: " + user.name());
+
         return ResponseEntity.ok(userService.getUserById(userId));
     }
 }

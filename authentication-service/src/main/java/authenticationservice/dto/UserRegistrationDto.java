@@ -1,3 +1,5 @@
 package authenticationservice.dto;
 
-public record UserRegistrationDto(Long id, String email, String name, String surname) {}
+import java.time.LocalDate;
+
+public record UserRegistrationDto(Long id, String email, String name, String surname, LocalDate birthDate) {}

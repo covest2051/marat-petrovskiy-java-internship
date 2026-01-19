@@ -10,6 +10,10 @@ import java.util.List;
 
 @Mapper(componentModel = "spring", uses = {OrderItemMapper.class})
 public interface OrderMapper {
+    @Mapping(target = "id", source = "order.id")
+    @Mapping(target = "status", source = "order.status")
+    @Mapping(target = "creationDate", source = "order.creationDate")
+    @Mapping(target = "orderItems", source = "order.orderItems")
     @Mapping(target = "userResponse", source = "user")
     OrderResponse toOrderResponse(Order order, UserResponse user);
 

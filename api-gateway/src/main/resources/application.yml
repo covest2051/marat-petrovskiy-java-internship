@@ -18,6 +18,7 @@ spring:
           uri: http://user-service:8080
           predicates:
             - Path=/user/**
+            - Method=GET,POST,PUT,DELETE
           filters:
             - RewritePath=/user/(?<remaining>.*), /users/${remaining}
 

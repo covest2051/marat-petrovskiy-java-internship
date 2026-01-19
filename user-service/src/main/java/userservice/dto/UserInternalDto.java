@@ -1,3 +1,5 @@
 package userservice.dto;
 
-public record UserInternalDto(Long id, String email, String name, String surname) {}
+import java.time.LocalDate;
+
+public record UserInternalDto(Long id, String email, String name, String surname, LocalDate birthDate) {}

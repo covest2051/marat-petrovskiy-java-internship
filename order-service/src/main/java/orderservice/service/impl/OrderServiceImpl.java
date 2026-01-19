@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -38,8 +39,12 @@ public class OrderServiceImpl implements OrderService {
                 .userId(orderRequest.userId())
                 .status(OrderStatus.CREATED)
                 .creationDate(LocalDateTime.now())
-                .orderItems(orderRequest.orderItems())
+                .orderItems(new ArrayList<>())
                 .build();
+
+        if (orderRequest.orderItems() != null) {
+            orderRequest.orderItems().forEach(order::addOrderItem);
+        }
 
         UserResponse user = userClient.getUserById(order.getUserId());
 

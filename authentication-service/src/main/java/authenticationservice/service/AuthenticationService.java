@@ -81,12 +81,11 @@ public class AuthenticationService {
         profileData.put("email", request.getLogin());
         profileData.put("name", request.getName());
         profileData.put("surname", request.getSurname());
+        profileData.put("birthDate", request.getBirthDate());
 
         try {
             restTemplate.postForEntity(USER_SERVICE_URL, profileData, Void.class);
         } catch (Exception e) {
-            // Если user-service недоступен, транзакция откатится
-            // и пользователь в auth-service не будет создан
             throw new RuntimeException("Не удалось создать профиль в User Service: " + e.getMessage());
         }
     }

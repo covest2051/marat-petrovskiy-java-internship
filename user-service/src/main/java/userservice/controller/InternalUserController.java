@@ -22,6 +22,7 @@ public class InternalUserController {
         user.setEmail(dto.email());
         user.setName(dto.name());
         user.setSurname(dto.surname());
+        user.setBirthDate(dto.birthDate());
         userRepository.save(user);
     }
 }
