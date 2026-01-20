@@ -9,7 +9,7 @@ import org.springframework.web.client.RestTemplate;
 public class RandomNumberClient {
 
     private final RestTemplate restTemplate = new RestTemplate();
-    private final String RANDOM_NUMBER_API_URL = "https://www.randomnumberapi.com/api/v1.0/random?min=1&max=2";
+    private final String RANDOM_NUMBER_API_URL = "https://www.randomnumberapi.com/api/v1.0/random?min=1&max=3";
 
     public int getRandomNumber() {
         Integer[] response = restTemplate.getForObject(RANDOM_NUMBER_API_URL, Integer[].class);

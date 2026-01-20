@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Repository
-public interface PaymentRepository extends MongoRepository<Payment, Long> {
+public interface PaymentRepository extends MongoRepository<Payment, String> {
     Page<Payment> findByOrderId(Long orderId, Pageable pageable);
 
     Page<Payment> findAllByUserId(Long userId, Pageable pageable);

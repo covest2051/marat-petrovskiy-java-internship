@@ -16,7 +16,7 @@ import java.time.Instant;
 public class Payment {
 
     @Id
-    private Long id;
+    private String id;
 
     @Indexed
     private Long orderId;

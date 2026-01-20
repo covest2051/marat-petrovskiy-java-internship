@@ -50,12 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } else {
             String header = request.getHeader("Authorization");
             if (header != null && header.startsWith("Bearer ")) {
-                log.info("=== JwtAuthenticationFilter DEBUG ===");
                 log.info("Request path: {}", request.getRequestURI());
-                log.info("X-User-Id header: {}", xUserId);
-                log.info("X-User-Role header: {}", xUserRole);
-                log.info("Authorization header present: {}", request.getHeader("Authorization") != null);
-                log.info("SecurityContext before: {}", SecurityContextHolder.getContext().getAuthentication());
                 String token = header.substring(7);
                 try {
                     Long userId = jwtProvider.getUserIdFromToken(token);

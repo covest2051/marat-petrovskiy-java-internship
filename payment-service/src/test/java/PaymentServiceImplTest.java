@@ -60,7 +60,7 @@ class PaymentServiceImplTest {
                 .paymentAmount(BigDecimal.valueOf(100))
                 .build();
 
-        PaymentResponse response = new PaymentResponse(1L, 1L, 1L, PaymentStatus.CREATED, Instant.now(), BigDecimal.valueOf(100));
+        PaymentResponse response = new PaymentResponse("1", 1L, 1L, PaymentStatus.CREATED, Instant.now(), BigDecimal.valueOf(100));
 
         when(randomNumberClient.getRandomNumber()).thenReturn(2); // чёт
         when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
@@ -83,7 +83,7 @@ class PaymentServiceImplTest {
                 .paymentAmount(BigDecimal.valueOf(50))
                 .build();
 
-        PaymentResponse response = new PaymentResponse(1L, 1L, 1L, PaymentStatus.ERROR, Instant.now(), BigDecimal.valueOf(50));
+        PaymentResponse response = new PaymentResponse("1", 1L, 1L, PaymentStatus.ERROR, Instant.now(), BigDecimal.valueOf(50));
 
         when(randomNumberClient.getRandomNumber()).thenReturn(1); // нечт
         when(paymentRepository.save(any(Payment.class))).thenReturn(payment);

@@ -56,9 +56,9 @@ public class PaymentServiceIntegrationTest {
         paymentRepository.deleteAll();
 
         paymentRepository.saveAll(List.of(
-                new Payment(1L, 1L, 1L, PaymentStatus.COMPLETE, Instant.now().minus(1, ChronoUnit.DAYS),  BigDecimal.valueOf(50)),
-                new Payment(1L, 1L, 1L, PaymentStatus.COMPLETE, Instant.now().minus(2, ChronoUnit.DAYS),  BigDecimal.valueOf(70)),
-                new Payment(2L, 2L, 2L, PaymentStatus.COMPLETE, Instant.now().minus(3, ChronoUnit.DAYS),  BigDecimal.valueOf(30))
+                new Payment("1", 1L, 1L, PaymentStatus.COMPLETE, Instant.now().minus(1, ChronoUnit.DAYS),  BigDecimal.valueOf(50)),
+                new Payment("1", 1L, 1L, PaymentStatus.COMPLETE, Instant.now().minus(2, ChronoUnit.DAYS),  BigDecimal.valueOf(70)),
+                new Payment("1", 2L, 2L, PaymentStatus.COMPLETE, Instant.now().minus(3, ChronoUnit.DAYS),  BigDecimal.valueOf(30))
         ));
     }
 
