@@ -102,7 +102,7 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalStateException("You cannot edit order after it has been payed");
         }
 
-        if (orderToUpdate.getStatus().ordinal() >= orderRequest.status().ordinal()) {
+        if (orderToUpdate.getStatus().ordinal() > orderRequest.status().ordinal()) {
             throw new IllegalStateException("It`s not allowed to change status in opposite direction");
         }
 
