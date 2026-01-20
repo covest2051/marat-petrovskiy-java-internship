@@ -6,8 +6,10 @@ import orderservice.client.UserClient;
 import orderservice.dto.OrderRequest;
 import orderservice.dto.OrderResponse;
 import orderservice.dto.UserResponse;
+import orderservice.dto.mapper.OrderItemMapper;
 import orderservice.dto.mapper.OrderMapper;
 import orderservice.entity.Order;
+import orderservice.entity.OrderItem;
 import orderservice.entity.OrderStatus;
 import orderservice.exception.OrderNotFoundException;
 import orderservice.metrics.OrderMetrics;
@@ -30,6 +32,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final UserClient userClient;
     private final OrderMetrics orderMetrics;
+    private final OrderItemMapper orderItemMapper;
 
     @Override
     @Transactional
@@ -43,7 +46,10 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         if (orderRequest.orderItems() != null) {
-            orderRequest.orderItems().forEach(order::addOrderItem);
+            orderRequest.orderItems().forEach(dto -> {
+                OrderItem entity = orderItemMapper.toOrderItem(dto);
+                order.addOrderItem(entity);
+            });
         }
 
         UserResponse user = userClient.getUserById(order.getUserId());
@@ -101,7 +107,13 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderToUpdate.setStatus(orderRequest.status());
-        orderToUpdate.setOrderItems(orderRequest.orderItems());
+
+        if (orderRequest.orderItems() != null) {
+            orderToUpdate.getOrderItems().clear();
+            orderRequest.orderItems().forEach(dto -> {
+                orderToUpdate.addOrderItem(orderItemMapper.toOrderItem(dto));
+            });
+        }
 
         Order savedOrder = orderRepository.save(orderToUpdate);
 

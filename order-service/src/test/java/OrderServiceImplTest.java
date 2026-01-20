@@ -1,7 +1,9 @@
 import orderservice.client.UserClient;
+import orderservice.dto.OrderItemDTO;
 import orderservice.dto.OrderRequest;
 import orderservice.dto.OrderResponse;
 import orderservice.dto.UserResponse;
+import orderservice.dto.mapper.OrderItemMapper;
 import orderservice.dto.mapper.OrderMapper;
 import orderservice.entity.Order;
 import orderservice.entity.OrderStatus;
@@ -49,12 +51,17 @@ class OrderServiceImplTest {
     private Order order;
     private OrderRequest orderRequest;
     private UserResponse userResponse;
+    @Mock
+    private OrderItemMapper orderItemMapper;
+    private List<OrderItemDTO> orderItemDTOs;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        orderRequest = new OrderRequest(1L, OrderStatus.CREATED, List.of());
+        orderItemDTOs = List.of();
+
+        orderRequest = new OrderRequest(1L, OrderStatus.CREATED, orderItemDTOs);
 
         order = Order.builder()
                 .id(1L)
@@ -72,7 +79,7 @@ class OrderServiceImplTest {
         when(orderRepository.save(any(Order.class))).thenReturn(order);
         when(userClient.getUserById(eq(1L))).thenReturn(userResponse);
         when(orderMapper.toOrderResponse(eq(order), eq(userResponse)))
-                .thenReturn(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), order.getOrderItems()));
+                .thenReturn(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), orderItemDTOs));
 
         OrderResponse response = orderService.createOrder(orderRequest);
 
@@ -88,7 +95,7 @@ class OrderServiceImplTest {
         when(orderRepository.findAllByUserId(anyLong(), any(Pageable.class))).thenReturn(List.of(order));
         when(userClient.getUserById(eq(1L))).thenReturn(userResponse);
         when(orderMapper.toOrderResponseList(anyList()))
-                .thenReturn(List.of(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), order.getOrderItems())));
+                .thenReturn(List.of(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), orderItemDTOs)));
 
         List<OrderResponse> orders = orderService.getAllUserOrdersById(0, 10, 1L);
 
@@ -102,7 +109,7 @@ class OrderServiceImplTest {
         when(orderRepository.findById(eq(1L))).thenReturn(Optional.of(order));
         when(userClient.getUserById(eq(1L))).thenReturn(userResponse);
         when(orderMapper.toOrderResponse(eq(order), eq(userResponse)))
-                .thenReturn(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), order.getOrderItems()));
+                .thenReturn(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), orderItemDTOs));
 
         OrderResponse response = orderService.getOrderById(1L);
 
@@ -126,7 +133,7 @@ class OrderServiceImplTest {
         when(orderRepository.findAllByStatus(any(OrderStatus.class), any(Pageable.class))).thenReturn(List.of(order));
         when(userClient.getUserById(eq(1L))).thenReturn(userResponse);
         when(orderMapper.toOrderResponseList(eq(List.of(order))))
-                .thenReturn(List.of(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), order.getOrderItems())));
+                .thenReturn(List.of(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), orderItemDTOs)));
 
         List<OrderResponse> result = orderService.getAllOrdersByStatus(0, 10, OrderStatus.CREATED);
 
@@ -151,7 +158,7 @@ class OrderServiceImplTest {
         when(orderRepository.save(any(Order.class))).thenReturn(updatedOrder);
         when(userClient.getUserById(eq(1L))).thenReturn(userResponse);
         when(orderMapper.toOrderResponse(eq(updatedOrder), eq(userResponse)))
-                .thenReturn(new OrderResponse(updatedOrder.getId(), userResponse, updatedOrder.getStatus(), updatedOrder.getCreationDate(), updatedOrder.getOrderItems()));
+                .thenReturn(new OrderResponse(updatedOrder.getId(), userResponse, updatedOrder.getStatus(), updatedOrder.getCreationDate(), orderItemDTOs));
 
         OrderResponse resp = orderService.updateOrder(1L, request);
 
