@@ -98,12 +98,12 @@ public class OrderServiceImpl implements OrderService {
         Order orderToUpdate = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order with id " + id + " not found"));
 
-        if (orderRequest.status().ordinal() >= OrderStatus.PAYED.ordinal()) {
-            throw new IllegalStateException("You cannot edit order after it has been payed");
+        if (orderToUpdate.getStatus().ordinal() >= OrderStatus.PAYED.ordinal()) {
+            throw new IllegalStateException("You cannot edit order after it has already been payed");
         }
 
         if (orderToUpdate.getStatus().ordinal() > orderRequest.status().ordinal()) {
-            throw new IllegalStateException("It`s not allowed to change status in opposite direction");
+            throw new IllegalStateException("It's not allowed to change status in opposite direction");
         }
 
         orderToUpdate.setStatus(orderRequest.status());
@@ -129,5 +129,27 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new OrderNotFoundException("Order with id " + id + " not found"));
 
         orderRepository.delete(orderToDelete);
+    }
+
+    @Transactional
+    public void updateOrderStatus(Long id, OrderStatus newStatus) {
+        Order orderToUpdate = orderRepository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException("Order with id " + id + " not found"));
+
+        if (orderToUpdate.getStatus() == OrderStatus.PAYED) {
+            throw new IllegalStateException("You cannot edit order after it has already been payed");
+        }
+
+        if (orderToUpdate.getStatus().ordinal() >= OrderStatus.PAYED.ordinal()) {
+            throw new IllegalStateException("You cannot edit order after it has already been payed");
+        }
+
+        if (orderToUpdate.getStatus().ordinal() > newStatus.ordinal()) {
+            throw new IllegalStateException("It's not allowed to change status in opposite direction");
+        }
+
+        orderToUpdate.setStatus(newStatus);
+
+        orderRepository.save(orderToUpdate);
     }
 }

@@ -159,12 +159,12 @@ class PaymentServiceImplTest {
                 Payment.builder().paymentAmount(BigDecimal.valueOf(30)).build()
         );
 
-        when(paymentRepository.findByTimestampBetween(from, to)).thenReturn(payments);
+        when(paymentRepository.findByTimestampBetweenAndStatus(from, to, "CREATED")).thenReturn(payments);
 
         BigDecimal result = paymentService.getAllPaymentsByPeriod(0, 10, from, to);
 
         assertEquals(BigDecimal.valueOf(150), result);
-        verify(paymentRepository).findByTimestampBetween(from, to);
+        verify(paymentRepository).findByTimestampBetweenAndStatus(from, to, "CREATED");
     }
 
     @Test
@@ -178,12 +178,12 @@ class PaymentServiceImplTest {
                 Payment.builder().paymentAmount(BigDecimal.valueOf(27.89)).build()
         );
 
-        when(paymentRepository.findByUserIdAndTimestampBetween(userId, from, to))
+        when(paymentRepository.findByUserIdAndTimestampBetweenAndStatus(userId, from, to, "CREATED"))
                 .thenReturn(payments);
 
         BigDecimal result = paymentService.getUserPaymentsByPeriod(0, 10, userId, from, to);
 
         assertEquals(BigDecimal.valueOf(67.89), result);
-        verify(paymentRepository).findByUserIdAndTimestampBetween(userId, from, to);
+        verify(paymentRepository).findByUserIdAndTimestampBetweenAndStatus(userId, from, to, "CREATED");
     }
 }

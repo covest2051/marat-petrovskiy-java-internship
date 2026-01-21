@@ -23,8 +23,8 @@ spring:
       timeout: 2000ms
 
 topic:
-  order-created: test-order-created-topic
-  payment-created: test-payment-created-topic
+  order-created: order-created-topic
+  payment-created: payment-created-topic
 
 security:
   jwt:

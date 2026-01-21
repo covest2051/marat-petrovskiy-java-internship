@@ -21,6 +21,7 @@ import paymentservice.service.PaymentService;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +35,15 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentResponse createPayment(PaymentRequest paymentRequest) {
+        Optional<Payment> existingPayment = paymentRepository.findByOrderId(paymentRequest.orderId())
+                .stream()
+                .filter(p -> p.getStatus() == PaymentStatus.CREATED)
+                .findFirst();
+
+        if (existingPayment.isPresent()) {
+            return paymentMapper.toPaymentResponse(existingPayment.get());
+        }
+
         int randomNumber = randomNumberClient.getRandomNumber();
 
         PaymentStatus status = (randomNumber % 2 == 0)
@@ -58,6 +68,15 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentResponse createPaymentFromOrder(OrderCreatedEvent event) {
+        Optional<Payment> existingPayment = paymentRepository.findByOrderId(event.orderId())
+                .stream()
+                .filter(p -> p.getStatus() == PaymentStatus.CREATED)
+                .findFirst();
+
+        if (existingPayment.isPresent()) {
+            return paymentMapper.toPaymentResponse(existingPayment.get());
+        }
+
         PaymentRequest paymentRequest = new PaymentRequest(
                 event.orderId(),
                 event.userId(),
@@ -113,7 +132,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public BigDecimal getAllPaymentsByPeriod(int page, int size, Instant from, Instant to) {
-        List<Payment> payments = paymentRepository.findByTimestampBetween(from, to);
+        List<Payment> payments = paymentRepository.findByTimestampBetweenAndStatus(from, to, "CREATED");
         return payments.stream()
                 .map(Payment::getPaymentAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -121,7 +140,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public BigDecimal getUserPaymentsByPeriod(int page, int size, Long userId, Instant from, Instant to) {
-        List<Payment> payments = paymentRepository.findByUserIdAndTimestampBetween(userId, from, to);
+        List<Payment> payments = paymentRepository.findByUserIdAndTimestampBetweenAndStatus(userId, from, to, "CREATED");
         return payments.stream()
                 .map(Payment::getPaymentAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

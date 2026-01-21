@@ -263,7 +263,7 @@ services:
       SERVER_PORT: 8083
 
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-      TOPIC_ORDER_CREATED: test-order-created-topic
+      TOPIC_ORDER_CREATED: order-created-topic
 
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
