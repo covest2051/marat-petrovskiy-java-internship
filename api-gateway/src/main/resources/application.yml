@@ -1,4 +1,4 @@
-  spring:
+spring:
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
@@ -17,7 +17,7 @@
         - id: user-service
           uri: http://user-service:8080
           predicates:
-            - Path=/user/**
+            - Path=/user/**, /users, /users/**, /cards, /cards/**, /internal/users
             - Method=GET,POST,PUT,DELETE
           filters:
             - RewritePath=/user/(?<remaining>.*), /users/${remaining}
@@ -25,7 +25,12 @@
         - id: order-service
           uri: http://order-service:8082
           predicates:
-            - Path=/orders/**
+            - Path=/orders/**, /orders
+
+        - id: payment-service
+          uri: http://payment-service:8083
+          predicates:
+            - Path=/payments/**, /payments
           filters:
             - StripPrefix=0
     compatibility-verifier:
