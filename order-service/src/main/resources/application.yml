@@ -49,3 +49,9 @@ spring:
 topic:
   order-created: test-order-created-topic
   payment-created: test-payment-created-topic
+
+security:
+  jwt:
+    secret: 619296d21b477d598dc0dc0ec8eec349
+    access-expiration-ms: 900000
+    refresh-expiration-ms: 2592000000

@@ -30,6 +30,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 @SpringBootTest(classes = OrderServiceApplication.class,
         properties = {
+                "spring.cache.type=simple",
+                "spring.liquibase.enabled=false",
+                "spring.jpa.hibernate.ddl-auto=create-drop",
                 "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration"
         })
 class OrderServiceIntegrationTest {

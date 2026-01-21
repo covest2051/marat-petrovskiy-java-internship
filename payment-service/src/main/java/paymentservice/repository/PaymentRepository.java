@@ -3,6 +3,7 @@ package paymentservice.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 import paymentservice.entity.Payment;
 import paymentservice.entity.PaymentStatus;
@@ -21,5 +22,6 @@ public interface PaymentRepository extends MongoRepository<Payment, String> {
 
     List<Payment> findByTimestampBetween(Instant from, Instant to);
 
+    @Query("{ 'userId' : ?0, 'timestamp' : { $gte: ?1, $lte: ?2 } }")
     List<Payment> findByUserIdAndTimestampBetween(Long userId, Instant from, Instant to);
 }
