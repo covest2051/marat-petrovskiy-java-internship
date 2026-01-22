@@ -132,7 +132,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public BigDecimal getAllPaymentsByPeriod(int page, int size, Instant from, Instant to) {
-        List<Payment> payments = paymentRepository.findByTimestampBetweenAndStatus(from, to, "CREATED");
+        List<Payment> payments = paymentRepository.findByTimestampBetweenAndStatus(from, to, PaymentStatus.CREATED);
         return payments.stream()
                 .map(Payment::getPaymentAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -140,7 +140,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public BigDecimal getUserPaymentsByPeriod(int page, int size, Long userId, Instant from, Instant to) {
-        List<Payment> payments = paymentRepository.findByUserIdAndTimestampBetweenAndStatus(userId, from, to, "CREATED");
+        List<Payment> payments = paymentRepository.findByUserIdAndTimestampBetweenAndStatus(userId, from, to, PaymentStatus.CREATED);
         return payments.stream()
                 .map(Payment::getPaymentAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

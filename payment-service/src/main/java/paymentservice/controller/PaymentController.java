@@ -23,7 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/payments")
 @RequiredArgsConstructor
-public class PaymentController {
+public class    PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping

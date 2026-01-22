@@ -20,10 +20,9 @@ public interface PaymentRepository extends MongoRepository<Payment, String> {
 
     Page<Payment> findAllByStatus(PaymentStatus status, Pageable pageable);
 
-    List<Payment> findByTimestampBetweenAndStatus(Instant from, Instant to, String status);
+    List<Payment> findByTimestampBetweenAndStatus(Instant from, Instant to, PaymentStatus status);
 
-    @Query("{ 'userId' : ?0, 'timestamp' : { $gte: ?1, $lte: ?2 } }")
-    List<Payment> findByUserIdAndTimestampBetweenAndStatus(Long userId, Instant from, Instant to, String status);
+    List<Payment> findByUserIdAndTimestampBetweenAndStatus(Long userId, Instant from, Instant to, PaymentStatus status);
 
     List<Payment> findByOrderId(Long orderId);
 }

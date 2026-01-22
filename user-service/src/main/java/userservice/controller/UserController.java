@@ -70,8 +70,6 @@ public class UserController {
 
         UserResponse user = userService.getUserById(userId);
 
-        System.out.println("User from DB: " + user.name());
-
         return ResponseEntity.ok(userService.getUserById(userId));
     }
 }

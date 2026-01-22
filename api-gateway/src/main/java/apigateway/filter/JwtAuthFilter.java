@@ -38,8 +38,6 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
         System.out.println("Gateway Outgoing Headers: " + exchange.getRequest().getHeaders());
         String path = exchange.getRequest().getURI().getPath();
 
-        System.out.println("DEBUG: Checking path: " + path);
-
         for (String pattern : excluded) {
             if (pathMatcher.match(pattern, path)) {
                 return chain.filter(exchange);

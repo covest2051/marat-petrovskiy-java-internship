@@ -20,6 +20,8 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.kafka.KafkaContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +40,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OrderServiceIntegrationTest {
 
     @Container
+    static final KafkaContainer kafka = new KafkaContainer(
+            DockerImageName.parse("apache/kafka-native:3.8.0")
+    );
+
+    @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
             .withDatabaseName("innowisedb")
             .withUsername("postgres")
@@ -48,6 +55,8 @@ class OrderServiceIntegrationTest {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+        registry.add("user.service.url", () -> "http://localhost:8089");
     }
 
     @Autowired
@@ -64,7 +73,7 @@ class OrderServiceIntegrationTest {
         wireMockServer.start();
         configureFor("localhost", 8089);
 
-        stubFor(get(urlEqualTo("/users/id/1"))
+        stubFor(get(urlEqualTo("/users/1"))
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody("""

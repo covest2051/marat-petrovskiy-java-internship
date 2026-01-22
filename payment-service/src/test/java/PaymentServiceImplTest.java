@@ -116,7 +116,7 @@ class PaymentServiceImplTest {
     void getPaymentsByUserId_shouldReturnPayments() {
         Page<Payment> page = new PageImpl<>(List.of(new Payment()));
 
-        when(paymentRepository.findByOrderId(eq(1L), any(Pageable.class)))
+        when(paymentRepository.findAllByUserId(eq(1L), any(Pageable.class)))
                 .thenReturn(page);
 
         when(paymentMapper.toPaymentResponseList(any()))
@@ -159,12 +159,12 @@ class PaymentServiceImplTest {
                 Payment.builder().paymentAmount(BigDecimal.valueOf(30)).build()
         );
 
-        when(paymentRepository.findByTimestampBetweenAndStatus(from, to, "CREATED")).thenReturn(payments);
+        when(paymentRepository.findByTimestampBetweenAndStatus(from, to, PaymentStatus.CREATED)).thenReturn(payments);
 
         BigDecimal result = paymentService.getAllPaymentsByPeriod(0, 10, from, to);
 
         assertEquals(BigDecimal.valueOf(150), result);
-        verify(paymentRepository).findByTimestampBetweenAndStatus(from, to, "CREATED");
+        verify(paymentRepository).findByTimestampBetweenAndStatus(from, to, PaymentStatus.CREATED);
     }
 
     @Test
@@ -178,12 +178,12 @@ class PaymentServiceImplTest {
                 Payment.builder().paymentAmount(BigDecimal.valueOf(27.89)).build()
         );
 
-        when(paymentRepository.findByUserIdAndTimestampBetweenAndStatus(userId, from, to, "CREATED"))
+        when(paymentRepository.findByUserIdAndTimestampBetweenAndStatus(userId, from, to, PaymentStatus.CREATED))
                 .thenReturn(payments);
 
         BigDecimal result = paymentService.getUserPaymentsByPeriod(0, 10, userId, from, to);
 
         assertEquals(BigDecimal.valueOf(67.89), result);
-        verify(paymentRepository).findByUserIdAndTimestampBetweenAndStatus(userId, from, to, "CREATED");
+        verify(paymentRepository).findByUserIdAndTimestampBetweenAndStatus(userId, from, to, PaymentStatus.CREATED);
     }
 }
