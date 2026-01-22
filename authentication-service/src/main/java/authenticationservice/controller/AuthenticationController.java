@@ -37,8 +37,8 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
-        System.out.println("DEBUG: Received login: " + req.getLogin());
-        String role = Optional.ofNullable(req.getRole()).orElse("ROLE_USER");
+        System.out.println("DEBUG FULL REQ: " + req);
+        String role = Optional.ofNullable(req.role()).orElse("ROLE_USER");
         authenticationService.register(req);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

@@ -5,6 +5,7 @@ import apigateway.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -18,7 +19,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class JwtAuthFilter implements GlobalFilter {
+public class JwtAuthFilter implements GlobalFilter, Ordered {
 
     private final JwtUtil jwtUtil;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
@@ -34,6 +35,7 @@ public class JwtAuthFilter implements GlobalFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        System.out.println("Gateway Outgoing Headers: " + exchange.getRequest().getHeaders());
         String path = exchange.getRequest().getURI().getPath();
 
         System.out.println("DEBUG: Checking path: " + path);
@@ -79,5 +81,10 @@ public class JwtAuthFilter implements GlobalFilter {
                     e.printStackTrace();
                     return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token: " + e.getMessage()));
                 });
+    }
+
+    @Override
+    public int getOrder() {
+        return Ordered.HIGHEST_PRECEDENCE;
     }
 }

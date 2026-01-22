@@ -1,4 +1,6 @@
 spring:
+  jackson:
+    property-naming-strategy: LOWER_CAMEL_CASE
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
@@ -26,11 +28,13 @@ spring:
           uri: http://order-service:8082
           predicates:
             - Path=/orders/**, /orders
+            - Method=GET,POST,PUT,DELETE
 
         - id: payment-service
           uri: http://payment-service:8083
           predicates:
             - Path=/payments/**, /payments
+            - Method=GET,POST,PUT,DELETE
           filters:
             - StripPrefix=0
     compatibility-verifier:

@@ -2,6 +2,7 @@ package authenticationservice.service;
 
 import authenticationservice.dto.RegisterRequest;
 import authenticationservice.dto.TokenResponse;
+import authenticationservice.dto.UserRegistrationDto;
 import authenticationservice.entity.UserCredential;
 import authenticationservice.repository.UserCredentialRepository;
 import authenticationservice.security.JwtProvider;
@@ -58,34 +59,37 @@ public class AuthenticationService {
 
     @Transactional
     public void register(RegisterRequest request) {
-        if (userCredentialRepository.existsByLogin(request.getLogin()))
+        if (userCredentialRepository.existsByLogin(request.login()))
             throw new IllegalArgumentException("Login exists");
 
         UserCredential u = new UserCredential();
-        String role = request.getRole();
+        String role = request.role();
         if (role == null || role.isBlank()) {
             role = "ROLE_USER";
         } else if (!role.startsWith("ROLE_")) {
             role = "ROLE_" + role;
         }
 
-        u.setLogin(request.getLogin());
-        u.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        u.setLogin(request.login());
+        u.setPasswordHash(passwordEncoder.encode(request.password()));
         u.setRole(role);
         u.setCreatedAt(Instant.now());
 
         u = userCredentialRepository.save(u);
 
-        Map<String, Object> profileData = new HashMap<>();
-        profileData.put("id", u.getId());
-        profileData.put("email", request.getLogin());
-        profileData.put("name", request.getName());
-        profileData.put("surname", request.getSurname());
-        profileData.put("birthDate", request.getBirthDate());
+        UserRegistrationDto profileData = new UserRegistrationDto(
+                u.getId(),
+                request.login(),
+                request.name(),
+                request.surname(),
+                request.birthDate(),
+                role
+        );
 
         try {
             restTemplate.postForEntity(USER_SERVICE_URL, profileData, Void.class);
         } catch (Exception e) {
+            System.err.println("Error creating profile: " + e.getMessage());
             throw new RuntimeException("Не удалось создать профиль в User Service: " + e.getMessage());
         }
     }
