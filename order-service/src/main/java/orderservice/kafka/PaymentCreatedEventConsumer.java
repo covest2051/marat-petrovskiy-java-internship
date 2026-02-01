@@ -21,7 +21,7 @@ public class PaymentCreatedEventConsumer {
 
     @KafkaListener(topics = "${topic.payment-created}", groupId = "order-service")
     public void handle(PaymentCreatedEvent event) {
-        log.info("Received CREATE_PAYMENT event: {}", event);
+        log.info("Received CREATE_PAYMENT event for userId: {}", event.userId());
 
         if (!"CREATED".equals(event.status())) {
             log.warn("Payment for order {} failed with status {}. Skipping status update.",

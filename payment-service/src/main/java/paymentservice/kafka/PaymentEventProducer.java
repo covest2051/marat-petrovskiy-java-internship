@@ -30,12 +30,12 @@ public class PaymentEventProducer {
 
         futureResult.whenComplete((result, ex) -> {
             if(ex == null) {
-                log.info("Sent event to topic {} for userId={}, orderId={}." +
+                log.info("Sent event to topic {} for userId={}" +
                                 " Partition: {}, Offset: {}",
-                        result.getRecordMetadata().topic(), event.userId(), event.orderId(),
+                        result.getRecordMetadata().topic(), event.userId(),
                         result.getRecordMetadata().partition(), result.getRecordMetadata().offset());
             } else {
-                log.error("Failed to send event to topic {} for userId={}, orderId={}", orderCreatedTopic, event.userId(), event.orderId());
+                log.error("Failed to send event to topic {} for userId={}", orderCreatedTopic, event.userId());
             }
         });
     }

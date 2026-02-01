@@ -8,6 +8,7 @@ import orderservice.dto.mapper.OrderMapper;
 import orderservice.entity.Order;
 import orderservice.entity.OrderStatus;
 import orderservice.exception.OrderNotFoundException;
+import orderservice.kafka.OrderEventProducer;
 import orderservice.metrics.OrderMetrics;
 import orderservice.repository.OrderRepository;
 import orderservice.service.impl.OrderServiceImpl;
@@ -59,6 +60,8 @@ class OrderServiceImplTest {
     @Mock
     private OrderItemMapper orderItemMapper;
     private List<OrderItemDTO> orderItemDTOs;
+    @Mock
+    private OrderEventProducer orderEventProducer;
 
     @BeforeEach
     void setUp() {
