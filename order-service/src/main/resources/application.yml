@@ -52,7 +52,7 @@ spring:
       port: 6379
 
 topic:
-  order-created: test-order-created-topic
+  order-created: order-created-topic
   payment-created: payment-created-topic
 
 security:

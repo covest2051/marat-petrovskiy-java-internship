@@ -6,12 +6,14 @@ import orderservice.client.UserClient;
 import orderservice.dto.OrderRequest;
 import orderservice.dto.OrderResponse;
 import orderservice.dto.UserResponse;
+import orderservice.dto.mapper.OrderEventMapper;
 import orderservice.dto.mapper.OrderItemMapper;
 import orderservice.dto.mapper.OrderMapper;
 import orderservice.entity.Order;
 import orderservice.entity.OrderItem;
 import orderservice.entity.OrderStatus;
 import orderservice.exception.OrderNotFoundException;
+import orderservice.kafka.OrderEventProducer;
 import orderservice.metrics.OrderMetrics;
 import orderservice.repository.OrderRepository;
 import orderservice.service.OrderService;
@@ -33,6 +35,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserClient userClient;
     private final OrderMetrics orderMetrics;
     private final OrderItemMapper orderItemMapper;
+    private final OrderEventProducer orderEventProducer;
 
     @Override
     @Transactional
@@ -57,6 +60,8 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
 
         orderMetrics.incrementCreated();
+
+        orderEventProducer.sendOrderCreatedEvent(order);
 
         return orderMapper.toOrderResponse(savedOrder, user);
     }

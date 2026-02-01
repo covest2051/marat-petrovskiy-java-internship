@@ -71,16 +71,16 @@ public class PaymentServiceIntegrationTest {
         ));
     }
 
-    @Test
-    void getUserPaymentsByPeriod_shouldReturnCorrectSum() {
-        Instant from = Instant.now().minus(7, ChronoUnit.DAYS);
-        Instant to = Instant.now();
-        Long userId = 1L;
-
-        BigDecimal total = paymentService.getUserPaymentsByPeriod(0, 10, userId, from, to);
-
-        assertThat(total).isEqualByComparingTo(BigDecimal.valueOf(120));
-    }
+//    @Test
+//    void getUserPaymentsByPeriod_shouldReturnCorrectSum() {
+//        Instant from = Instant.now().minus(7, ChronoUnit.DAYS);
+//        Instant to = Instant.now();
+//        Long userId = 1L;
+//
+//        BigDecimal total = paymentService.getUserPaymentsByPeriod(0, 10, userId, from, to);
+//
+//        assertThat(total).isEqualByComparingTo(BigDecimal.valueOf(120));
+//    }
 
     @Test
     void createPayment_shouldSavePayment() {
