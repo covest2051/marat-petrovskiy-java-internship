@@ -1,15 +1,17 @@
 package authenticationservice.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-@Setter
-@Getter
-public class RegisterRequest {
-    private String login;
-    private String password;
-    private String role;
+import java.time.LocalDate;
 
-    public RegisterRequest() {}
-
+public record RegisterRequest(
+        @JsonProperty("login") String login,
+        @JsonProperty("password") String password,
+        @JsonProperty("role") String role,
+        @JsonProperty("name") String name,
+        @JsonProperty("surname") String surname,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+        @JsonProperty("birthDate") LocalDate birthDate
+) {
 }

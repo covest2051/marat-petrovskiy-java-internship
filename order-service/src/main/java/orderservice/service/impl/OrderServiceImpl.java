@@ -6,10 +6,14 @@ import orderservice.client.UserClient;
 import orderservice.dto.OrderRequest;
 import orderservice.dto.OrderResponse;
 import orderservice.dto.UserResponse;
+import orderservice.dto.mapper.OrderEventMapper;
+import orderservice.dto.mapper.OrderItemMapper;
 import orderservice.dto.mapper.OrderMapper;
 import orderservice.entity.Order;
+import orderservice.entity.OrderItem;
 import orderservice.entity.OrderStatus;
 import orderservice.exception.OrderNotFoundException;
+import orderservice.kafka.OrderEventProducer;
 import orderservice.metrics.OrderMetrics;
 import orderservice.repository.OrderRepository;
 import orderservice.service.OrderService;
@@ -20,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,6 +34,8 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final UserClient userClient;
     private final OrderMetrics orderMetrics;
+    private final OrderItemMapper orderItemMapper;
+    private final OrderEventProducer orderEventProducer;
 
     @Override
     @Transactional
@@ -38,14 +45,23 @@ public class OrderServiceImpl implements OrderService {
                 .userId(orderRequest.userId())
                 .status(OrderStatus.CREATED)
                 .creationDate(LocalDateTime.now())
-                .orderItems(orderRequest.orderItems())
+                .orderItems(new ArrayList<>())
                 .build();
+
+        if (orderRequest.orderItems() != null) {
+            orderRequest.orderItems().forEach(dto -> {
+                OrderItem entity = orderItemMapper.toOrderItem(dto);
+                order.addOrderItem(entity);
+            });
+        }
 
         UserResponse user = userClient.getUserById(order.getUserId());
 
         Order savedOrder = orderRepository.save(order);
 
         orderMetrics.incrementCreated();
+
+        orderEventProducer.sendOrderCreatedEvent(order);
 
         return orderMapper.toOrderResponse(savedOrder, user);
     }
@@ -87,16 +103,22 @@ public class OrderServiceImpl implements OrderService {
         Order orderToUpdate = orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order with id " + id + " not found"));
 
-        if (orderRequest.status().ordinal() >= OrderStatus.PAYED.ordinal()) {
-            throw new IllegalStateException("You cannot edit order after it has been payed");
+        if (orderToUpdate.getStatus().ordinal() >= OrderStatus.PAYED.ordinal()) {
+            throw new IllegalStateException("You cannot edit order after it has already been payed");
         }
 
-        if (orderToUpdate.getStatus().ordinal() >= orderRequest.status().ordinal()) {
-            throw new IllegalStateException("It`s not allowed to change status in opposite direction");
+        if (orderToUpdate.getStatus().ordinal() > orderRequest.status().ordinal()) {
+            throw new IllegalStateException("It's not allowed to change status in opposite direction");
         }
 
         orderToUpdate.setStatus(orderRequest.status());
-        orderToUpdate.setOrderItems(orderRequest.orderItems());
+
+        if (orderRequest.orderItems() != null) {
+            orderToUpdate.getOrderItems().clear();
+            orderRequest.orderItems().forEach(dto -> {
+                orderToUpdate.addOrderItem(orderItemMapper.toOrderItem(dto));
+            });
+        }
 
         Order savedOrder = orderRepository.save(orderToUpdate);
 
@@ -112,5 +134,27 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new OrderNotFoundException("Order with id " + id + " not found"));
 
         orderRepository.delete(orderToDelete);
+    }
+
+    @Transactional
+    public void updateOrderStatus(Long id, OrderStatus newStatus) {
+        Order orderToUpdate = orderRepository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException("Order with id " + id + " not found"));
+
+        if (orderToUpdate.getStatus() == OrderStatus.PAYED) {
+            throw new IllegalStateException("You cannot edit order after it has already been payed");
+        }
+
+        if (orderToUpdate.getStatus().ordinal() >= OrderStatus.PAYED.ordinal()) {
+            throw new IllegalStateException("You cannot edit order after it has already been payed");
+        }
+
+        if (orderToUpdate.getStatus().ordinal() > newStatus.ordinal()) {
+            throw new IllegalStateException("It's not allowed to change status in opposite direction");
+        }
+
+        orderToUpdate.setStatus(newStatus);
+
+        orderRepository.save(orderToUpdate);
     }
 }

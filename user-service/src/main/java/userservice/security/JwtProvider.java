@@ -29,9 +29,10 @@ public class JwtProvider {
         this.refreshExpirationMs = refreshExpirationMs;
     }
 
-    public String generateAccessToken(String login, String role) {
+    public String generateAccessToken(Long userId, String login, String role) {
         return Jwts.builder()
                 .setSubject(login)
+                .claim("userId", userId)
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + accessExpirationMs))
@@ -59,6 +60,14 @@ public class JwtProvider {
     public String getRoleFromToken(String token) {
         Object r = validateToken(token).getBody().get("role");
         return r == null ? null : r.toString();
+    }
+
+    public Long getUserIdFromToken(String token) {
+        Object userId = validateToken(token).getBody().get("userId");
+        if (userId instanceof Number) {
+            return ((Number) userId).longValue();
+        }
+        return null;
     }
 }
 

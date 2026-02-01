@@ -40,6 +40,9 @@ spec:
                 secretKeyRef:
                   name: secret
                   key: SPRING_DATASOURCE_PASSWORD
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
           resources:
             requests:
               memory: "512Mi"
@@ -57,3 +60,7 @@ spec:
               command: ["pg_isready", "-U", "postgres"]
             initialDelaySeconds: 150
             periodSeconds: 10
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc

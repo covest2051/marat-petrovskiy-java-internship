@@ -28,7 +28,12 @@ spring:
       group-id: payment-service-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.value.default.type: orderservice.kafka.event.PaymentCreatedEvent
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
 
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -47,5 +52,11 @@ spring:
       port: 6379
 
 topic:
-  order-created: test-order-created-topic
-  payment-created: test-payment-created-topic
+  order-created: order-created-topic
+  payment-created: payment-created-topic
+
+security:
+  jwt:
+    secret: 619296d21b477d598dc0dc0ec8eec349
+    access-expiration-ms: 900000
+    refresh-expiration-ms: 2592000000

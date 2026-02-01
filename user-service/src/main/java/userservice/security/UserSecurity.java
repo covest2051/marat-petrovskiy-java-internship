@@ -15,8 +15,16 @@ public class UserSecurity {
     public boolean isUserOwner(Long userId) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) return false;
+
         if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) return true;
+
+        Object principal = auth.getPrincipal();
         String login = auth.getName();
+
+        if (principal instanceof Long) {
+            return principal.equals(userId);
+        }
+
         return userRepository.findById(userId)
                 .map(u -> u.getEmail().equals(login))
                 .orElse(false);
@@ -25,7 +33,16 @@ public class UserSecurity {
     public boolean isCardOwner(Long cardId) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) return false;
+
         if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) return true;
+
+        Object principal = auth.getPrincipal();
+        if (principal instanceof Long currentUserId) {
+            return cardRepository.findById(cardId)
+                    .map(c -> c.getUser() != null && currentUserId.equals(c.getUser().getId()))
+                    .orElse(false);
+        }
+
         String login = auth.getName();
         return cardRepository.findById(cardId)
                 .map(c -> c.getUser() != null && login.equals(c.getUser().getEmail()))

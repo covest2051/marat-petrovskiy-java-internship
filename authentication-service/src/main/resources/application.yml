@@ -1,4 +1,6 @@
 spring:
+  jackson:
+    property-naming-strategy: LOWER_CAMEL_CASE
   application:
     name: authentication-service
   datasource:

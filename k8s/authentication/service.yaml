@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: authentication
+  name: authentication-service
   namespace: microservices
 spec:
   selector:

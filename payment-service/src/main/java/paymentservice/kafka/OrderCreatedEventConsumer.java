@@ -16,9 +16,9 @@ public class OrderCreatedEventConsumer {
 
     @KafkaListener(topics = "${topic.order-created}", groupId = "payment-service")
     public void handle(OrderCreatedEvent event) {
-        log.info("Received CREATE_ORDER event: {}", event);
+        log.info("Received CREATE_ORDER event for userId: {}", event.userId());
 
-        paymentService.createPaymentFromOrder(event);
+        // paymentService.createPaymentFromOrder(event);
     }
 }
 

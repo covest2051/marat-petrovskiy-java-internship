@@ -60,7 +60,7 @@ class PaymentServiceImplTest {
                 .paymentAmount(BigDecimal.valueOf(100))
                 .build();
 
-        PaymentResponse response = new PaymentResponse(1L, 1L, 1L, PaymentStatus.CREATED, Instant.now(), BigDecimal.valueOf(100));
+        PaymentResponse response = new PaymentResponse("1", 1L, 1L, PaymentStatus.CREATED, Instant.now(), BigDecimal.valueOf(100));
 
         when(randomNumberClient.getRandomNumber()).thenReturn(2); // чёт
         when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
@@ -83,7 +83,7 @@ class PaymentServiceImplTest {
                 .paymentAmount(BigDecimal.valueOf(50))
                 .build();
 
-        PaymentResponse response = new PaymentResponse(1L, 1L, 1L, PaymentStatus.ERROR, Instant.now(), BigDecimal.valueOf(50));
+        PaymentResponse response = new PaymentResponse("1", 1L, 1L, PaymentStatus.ERROR, Instant.now(), BigDecimal.valueOf(50));
 
         when(randomNumberClient.getRandomNumber()).thenReturn(1); // нечт
         when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
@@ -116,7 +116,7 @@ class PaymentServiceImplTest {
     void getPaymentsByUserId_shouldReturnPayments() {
         Page<Payment> page = new PageImpl<>(List.of(new Payment()));
 
-        when(paymentRepository.findByOrderId(eq(1L), any(Pageable.class)))
+        when(paymentRepository.findAllByUserId(eq(1L), any(Pageable.class)))
                 .thenReturn(page);
 
         when(paymentMapper.toPaymentResponseList(any()))
@@ -159,12 +159,12 @@ class PaymentServiceImplTest {
                 Payment.builder().paymentAmount(BigDecimal.valueOf(30)).build()
         );
 
-        when(paymentRepository.findByTimestampBetween(from, to)).thenReturn(payments);
+        when(paymentRepository.findByTimestampBetweenAndStatus(from, to, PaymentStatus.CREATED)).thenReturn(payments);
 
         BigDecimal result = paymentService.getAllPaymentsByPeriod(0, 10, from, to);
 
         assertEquals(BigDecimal.valueOf(150), result);
-        verify(paymentRepository).findByTimestampBetween(from, to);
+        verify(paymentRepository).findByTimestampBetweenAndStatus(from, to, PaymentStatus.CREATED);
     }
 
     @Test
@@ -178,12 +178,12 @@ class PaymentServiceImplTest {
                 Payment.builder().paymentAmount(BigDecimal.valueOf(27.89)).build()
         );
 
-        when(paymentRepository.findByUserIdAndTimestampBetween(userId, from, to))
+        when(paymentRepository.findByUserIdAndTimestampBetweenAndStatus(userId, from, to, PaymentStatus.CREATED))
                 .thenReturn(payments);
 
         BigDecimal result = paymentService.getUserPaymentsByPeriod(0, 10, userId, from, to);
 
         assertEquals(BigDecimal.valueOf(67.89), result);
-        verify(paymentRepository).findByUserIdAndTimestampBetween(userId, from, to);
+        verify(paymentRepository).findByUserIdAndTimestampBetweenAndStatus(userId, from, to, PaymentStatus.CREATED);
     }
 }

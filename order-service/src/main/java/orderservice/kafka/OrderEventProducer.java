@@ -25,9 +25,9 @@ public class OrderEventProducer {
 
         try {
             kafkaTemplate.send(orderCreatedTopic, String.valueOf(event.orderId()), event);
-            log.info("Sent event to topic {} for userId={}, orderId={}", orderCreatedTopic, event.userId(), event.orderId());
+            log.info("Sent event to topic {} for userId={}", orderCreatedTopic, event.userId());
         } catch (Exception e) {
-            log.error("Failed to send event to topic {} for userId={}, orderId={}", orderCreatedTopic, event.userId(), event.orderId());
+            log.error("Failed to send event to topic {} for userId={}", orderCreatedTopic, event.userId());
         }
     }
 }

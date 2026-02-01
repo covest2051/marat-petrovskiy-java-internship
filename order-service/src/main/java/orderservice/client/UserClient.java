@@ -19,7 +19,7 @@ public class UserClient {
     @CircuitBreaker(name = "userService", fallbackMethod = "getUserByIdFallback")
     public UserResponse getUserById(Long id) {
         return userWebClient.get()
-                .uri("/users/id/{id}", id)
+                .uri("/users/{id}", id)
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .onStatus(
@@ -36,4 +36,3 @@ public class UserClient {
         return new UserResponse(id, "Unknown User", null, null, null);
     }
 }
-

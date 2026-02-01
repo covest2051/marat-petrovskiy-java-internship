@@ -1,11 +1,15 @@
 import orderservice.client.UserClient;
+import orderservice.dto.OrderItemDTO;
 import orderservice.dto.OrderRequest;
 import orderservice.dto.OrderResponse;
 import orderservice.dto.UserResponse;
+import orderservice.dto.mapper.OrderItemMapper;
 import orderservice.dto.mapper.OrderMapper;
 import orderservice.entity.Order;
 import orderservice.entity.OrderStatus;
 import orderservice.exception.OrderNotFoundException;
+import orderservice.kafka.OrderEventProducer;
+import orderservice.metrics.OrderMetrics;
 import orderservice.repository.OrderRepository;
 import orderservice.service.impl.OrderServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,25 +48,35 @@ class OrderServiceImplTest {
     @Mock
     private OrderMapper orderMapper;
 
+    @Mock
+    private OrderMetrics orderMetrics;
+
     @InjectMocks
     private OrderServiceImpl orderService;
 
     private Order order;
     private OrderRequest orderRequest;
     private UserResponse userResponse;
+    @Mock
+    private OrderItemMapper orderItemMapper;
+    private List<OrderItemDTO> orderItemDTOs;
+    @Mock
+    private OrderEventProducer orderEventProducer;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        orderRequest = new OrderRequest(1L, OrderStatus.CREATED, List.of());
+        orderItemDTOs = new ArrayList<>();
+
+        orderRequest = new OrderRequest(1L, OrderStatus.CREATED, orderItemDTOs);
 
         order = Order.builder()
                 .id(1L)
                 .userId(1L)
                 .status(OrderStatus.CREATED)
                 .creationDate(LocalDateTime.now())
-                .orderItems(List.of())
+                .orderItems(new ArrayList<>())
                 .build();
 
         userResponse = new UserResponse(1L, "Marat", "Petrovskiy", LocalDate.of(2000, 1, 1), "maratpetrovitch@gmail.com");
@@ -72,7 +87,7 @@ class OrderServiceImplTest {
         when(orderRepository.save(any(Order.class))).thenReturn(order);
         when(userClient.getUserById(eq(1L))).thenReturn(userResponse);
         when(orderMapper.toOrderResponse(eq(order), eq(userResponse)))
-                .thenReturn(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), order.getOrderItems()));
+                .thenReturn(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), orderItemDTOs));
 
         OrderResponse response = orderService.createOrder(orderRequest);
 
@@ -88,7 +103,7 @@ class OrderServiceImplTest {
         when(orderRepository.findAllByUserId(anyLong(), any(Pageable.class))).thenReturn(List.of(order));
         when(userClient.getUserById(eq(1L))).thenReturn(userResponse);
         when(orderMapper.toOrderResponseList(anyList()))
-                .thenReturn(List.of(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), order.getOrderItems())));
+                .thenReturn(List.of(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), orderItemDTOs)));
 
         List<OrderResponse> orders = orderService.getAllUserOrdersById(0, 10, 1L);
 
@@ -102,7 +117,7 @@ class OrderServiceImplTest {
         when(orderRepository.findById(eq(1L))).thenReturn(Optional.of(order));
         when(userClient.getUserById(eq(1L))).thenReturn(userResponse);
         when(orderMapper.toOrderResponse(eq(order), eq(userResponse)))
-                .thenReturn(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), order.getOrderItems()));
+                .thenReturn(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), orderItemDTOs));
 
         OrderResponse response = orderService.getOrderById(1L);
 
@@ -126,7 +141,7 @@ class OrderServiceImplTest {
         when(orderRepository.findAllByStatus(any(OrderStatus.class), any(Pageable.class))).thenReturn(List.of(order));
         when(userClient.getUserById(eq(1L))).thenReturn(userResponse);
         when(orderMapper.toOrderResponseList(eq(List.of(order))))
-                .thenReturn(List.of(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), order.getOrderItems())));
+                .thenReturn(List.of(new OrderResponse(order.getId(), userResponse, order.getStatus(), order.getCreationDate(), orderItemDTOs)));
 
         List<OrderResponse> result = orderService.getAllOrdersByStatus(0, 10, OrderStatus.CREATED);
 
@@ -137,21 +152,21 @@ class OrderServiceImplTest {
 
     @Test
     void updateOrder_shouldReturnUpdated() {
-        OrderRequest request = new OrderRequest(1L, OrderStatus.PROCESSING, List.of());
+        OrderRequest request = new OrderRequest(1L, OrderStatus.PROCESSING, new ArrayList<>());
 
         Order updatedOrder = Order.builder()
                 .id(1L)
                 .userId(1L)
                 .status(OrderStatus.CREATED)
                 .creationDate(order.getCreationDate())
-                .orderItems(List.of())
+                .orderItems(new ArrayList<>())
                 .build();
 
         when(orderRepository.findById(eq(1L))).thenReturn(Optional.of(order));
         when(orderRepository.save(any(Order.class))).thenReturn(updatedOrder);
         when(userClient.getUserById(eq(1L))).thenReturn(userResponse);
         when(orderMapper.toOrderResponse(eq(updatedOrder), eq(userResponse)))
-                .thenReturn(new OrderResponse(updatedOrder.getId(), userResponse, updatedOrder.getStatus(), updatedOrder.getCreationDate(), updatedOrder.getOrderItems()));
+                .thenReturn(new OrderResponse(updatedOrder.getId(), userResponse, updatedOrder.getStatus(), updatedOrder.getCreationDate(), orderItemDTOs));
 
         OrderResponse resp = orderService.updateOrder(1L, request);
 
