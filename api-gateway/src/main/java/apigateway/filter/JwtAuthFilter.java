@@ -3,6 +3,7 @@ package apigateway.filter;
 import apigateway.metrics.GatewayMetrics;
 import apigateway.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter implements GlobalFilter, Ordered {
@@ -35,7 +37,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        System.out.println("Gateway Outgoing Headers: " + exchange.getRequest().getHeaders());
+        log.debug("Gateway Outgoing Headers: " + exchange.getRequest().getHeaders());
         String path = exchange.getRequest().getURI().getPath();
 
         for (String pattern : excluded) {
@@ -66,7 +68,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
                 .flatMap(claims -> {
                     Object userId = claims.get("userId");
 
-                    System.out.println("DEBUG: Extracted userId from token: " + userId);
+                    log.debug("DEBUG: Extracted userId from token: " + userId);
 
                     ServerHttpRequest mutated = exchange.getRequest().mutate()
                             .header("X-User-Id", String.valueOf(userId))
@@ -75,8 +77,7 @@ public class JwtAuthFilter implements GlobalFilter, Ordered {
                     return chain.filter(exchange.mutate().request(mutated).build());
                 })
                 .onErrorResume(e -> {
-                    System.err.println("DEBUG: JWT Validation Failed!");
-                    e.printStackTrace();
+                    log.warn("DEBUG: JWT Validation Failed: {}", e.getMessage());
                     return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid token: " + e.getMessage()));
                 });
     }

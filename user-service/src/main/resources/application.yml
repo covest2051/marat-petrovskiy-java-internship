@@ -34,10 +34,12 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus,metrics,loggers
   endpoint:
     health:
       show-details: always
+    prometheus:
+      enabled: true
 
 logging:
   level:
@@ -45,4 +47,3 @@ logging:
     org.springframework.web: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-
