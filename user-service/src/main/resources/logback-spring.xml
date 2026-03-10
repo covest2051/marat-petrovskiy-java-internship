@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <springProperty scope="context" name="appName" source="spring.application.name" defaultValue="order-service"/>
+    <springProperty scope="context" name="env" source="spring.profiles.active" defaultValue="local"/>
+    <springProperty scope="context" name="sentryDsn" source="SENTRY_DSN" defaultValue=""/>
+
+    <property name="LOKI_ENDPOINT" value="${LOKI_URL:-http://localhost:3100}/loki/api/v1/push"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %5p [${appName},%X{traceId:-},%X{spanId:-}] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+        <http><url>${LOKI_ENDPOINT}</url></http>
+        <format>
+            <label>
+                <pattern>app=${appName},env=${env},level=%level,host=${HOSTNAME}</pattern>
+            </label>
+            <message>
+                <pattern>{"time":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}","level":"%level","logger":"%logger","trace":"%X{traceId:-}","msg":"%message","stack":"%ex{full}"}</pattern>
+            </message>
+            <sortByTime>true</sortByTime>
+        </format>
+        <batchMaxItems>1000</batchMaxItems>
+        <batchTimeoutMs>5000</batchTimeoutMs>
+    </appender>
+
+    <appender name="SENTRY" class="io.sentry.logback.SentryAppender">
+        <options>
+            <dsn>${sentryDsn}</dsn>
+        </options>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+    </appender>
+
+    <logger name="org.springframework.web" level="INFO"/>
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <logger name="com.zaxxer.hikari" level="INFO"/>
+
+    <logger name="${appName}" level="DEBUG"/>
+
+    <springProfile name="local">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="!local">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="LOKI"/>
+            <appender-ref ref="SENTRY"/>
+        </root>
+    </springProfile>
+
+</configuration>

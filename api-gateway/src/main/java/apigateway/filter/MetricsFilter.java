@@ -14,10 +14,18 @@ import reactor.core.publisher.Mono;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@RequiredArgsConstructor
 public class MetricsFilter implements GlobalFilter, Ordered {
 
     private final MeterRegistry registry;
+
+    private final Counter totalRequestsCounter;
+
+    public MetricsFilter(MeterRegistry registry) {
+        this.registry = registry;
+        this.totalRequestsCounter = Counter.builder("gateway.requests.total")
+                .description("Общее количество запросов через")
+                .register(registry);
+    }
 
     @Override
     public int getOrder() {
@@ -26,6 +34,8 @@ public class MetricsFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        totalRequestsCounter.increment();
+
         String path = exchange.getRequest().getURI().getPath();
 
         Counter.builder("gateway.route.calls")

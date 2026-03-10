@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <springProperty scope="context" name="appName" source="spring.application.name" defaultValue="order-service"/>
+    <springProperty scope="context" name="env" source="spring.profiles.active" defaultValue="local"/>
+    <springProperty scope="context" name="sentryDsn" source="SENTRY_DSN" defaultValue=""/>
+
+    <property name="LOKI_URL" value="${LOKI_URL:-http://loki:3100}/loki/api/v1/push"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%clr(%d{HH:mm:ss.SSS}){faint} %clr(%5p) %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{36}){cyan} %clr(:){faint} %X{traceId:-} %m%n%wEx</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+        <http><url>${LOKI_URL}</url></http>
+        <format>
+            <label>
+                <pattern>app=${appName},env=${env},level=%level,host=${HOSTNAME}</pattern>
+            </label>
+            <message>
+                <pattern>{"ts":"%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ}","level":"%level","logger":"%logger","trace":"%X{traceId:-none}","msg":"%message","ex":"%ex"}</pattern>
+            </message>
+            <sortByTime>true</sortByTime>
+        </format>
+        <batchMaxItems>500</batchMaxItems>
+        <batchTimeoutMs>2000</batchTimeoutMs>
+    </appender>
+
+    <appender name="SENTRY" class="io.sentry.logback.SentryAppender">
+        <options>
+            <dsn>${sentryDsn}</dsn>
+            <environment>${env}</environment>
+        </options>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <springProfile name="!local">
+            <appender-ref ref="LOKI"/>
+            <appender-ref ref="SENTRY"/>
+        </springProfile>
+    </root>
+
+    <logger name="org.springframework.web" level="WARN"/>
+    <logger name="org.apache.kafka" level="WARN"/>
+    <logger name="com.zaxxer.hikari" level="INFO"/>
+
+    <logger name="${appName}" level="DEBUG"/>
+
+</configuration>
