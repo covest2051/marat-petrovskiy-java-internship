@@ -16,18 +16,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthenticationController {
+
     private final AuthenticationService authenticationService;
 
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@RequestBody LoginRequest req) {
-        TokenResponse tokens = authenticationService.login(req.login(), req.password());
-        return ResponseEntity.ok(tokens);
+        return ResponseEntity.ok(authenticationService.login(req.login(), req.password()));
     }
 
     @PostMapping("/refresh")
@@ -36,17 +35,26 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
-        String role = Optional.ofNullable(req.role()).orElse("ROLE_USER");
+    public ResponseEntity<Void> register(@RequestBody RegisterRequest req) {
         authenticationService.register(req);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("/validate")
     public ResponseEntity<Map<String, Object>> validate(@RequestHeader("Authorization") String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) return ResponseEntity.status(400).build();
-        String token = authHeader.substring(7);
-        boolean ok = authenticationService.validateAccessToken(token);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().build();
+        }
+        boolean ok = authenticationService.validateAccessToken(authHeader.substring(7));
         return ResponseEntity.ok(Map.of("valid", ok));
+    }
+
+    @PostMapping("/oauth/complete")
+    public ResponseEntity<Void> completeOAuth(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().build();
+        }
+        authenticationService.completeOAuthRegistration(authHeader.substring(7));
+        return ResponseEntity.ok().build();
     }
 }
