@@ -31,3 +31,12 @@ security:
     secret: 619296d21b477d598dc0dc0ec8eec349
     access-expiration-ms: 900000
     refresh-expiration-ms: 2592000000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus,metrics,loggers
+  endpoint:
+    health:
+      show-details: always
