@@ -97,6 +97,16 @@
             <version>1.16.2</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.github.loki4j</groupId>
+            <artifactId>loki-logback-appender</artifactId>
+            <version>1.5.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.sentry</groupId>
+            <artifactId>sentry-logback</artifactId>
+            <version>7.14.0</version>
+        </dependency>
 
         <!-- Testing -->
         <dependency>

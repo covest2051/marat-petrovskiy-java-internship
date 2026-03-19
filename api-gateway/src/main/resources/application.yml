@@ -48,6 +48,10 @@ security:
       - /auth/login
       - /auth/register
       - /auth/health
+  oauth2:
+    resourceserver:
+      jwt:
+        jwk-set-uri: ${KEYCLOAK_URL:http://keycloak:8080}/realms/internship/protocol/openid-connect/cert
 
 management:
   endpoints:
